@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 // Pages
 import SplashScreen from "./pages/SplashScreen";
@@ -31,16 +32,28 @@ const App = () => (
             <Route path="/" element={<SplashScreen />} />
             <Route path="/auth" element={<AuthScreen />} />
             
-            {/* Main App Routes */}
+            {/* Main App Routes (accessible without auth) */}
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/day/:date" element={<DayDetailPage />} />
-            <Route path="/events" element={<EventsPage />} />
             <Route path="/library" element={<LibraryPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             
-            {/* Event Management */}
-            <Route path="/event/new" element={<CreateEventPage />} />
-            <Route path="/event/:id" element={<EventDetailPage />} />
+            {/* Protected Routes (require authentication) */}
+            <Route path="/events" element={
+              <ProtectedRoute>
+                <EventsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/event/new" element={
+              <ProtectedRoute>
+                <CreateEventPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/event/:id" element={
+              <ProtectedRoute>
+                <EventDetailPage />
+              </ProtectedRoute>
+            } />
             
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
