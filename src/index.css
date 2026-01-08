@@ -144,8 +144,13 @@
     font-family: 'Playfair Display', serif;
   }
 
-  .font-devanagari {
+  .font-devanagari,
+  .font-hindi {
     font-family: 'Noto Sans Devanagari', sans-serif;
+  }
+
+  .font-display {
+    font-family: 'Playfair Display', serif;
   }
 }
 
