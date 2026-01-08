@@ -14,7 +14,111 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      custom_events: {
+        Row: {
+          category: string | null
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+          reminder_enabled: boolean | null
+          reminder_time: string | null
+          time: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          date: string
+          description?: string | null
+          id?: string
+          reminder_enabled?: boolean | null
+          reminder_time?: string | null
+          time?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          reminder_enabled?: boolean | null
+          reminder_time?: string | null
+          time?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      event_reminders: {
+        Row: {
+          created_at: string
+          event_date: string
+          event_id: string
+          id: string
+          reminder_enabled: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_date: string
+          event_id: string
+          id?: string
+          reminder_enabled?: boolean | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          event_id?: string
+          id?: string
+          reminder_enabled?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          language: string | null
+          notifications_enabled: boolean | null
+          reminder_time: string | null
+          theme: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          language?: string | null
+          notifications_enabled?: boolean | null
+          reminder_time?: string | null
+          theme?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          language?: string | null
+          notifications_enabled?: boolean | null
+          reminder_time?: string | null
+          theme?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
