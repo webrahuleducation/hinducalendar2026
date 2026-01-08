@@ -12,8 +12,17 @@ export default function DayDetailPage() {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
 
-  const currentDate = date ? parseDateFromUrl(date) : new Date();
-  const events = date ? getEventsForDate(date) : [];
+  // Validate date format (YYYY-MM-DD)
+  const isValidDate = date && /^\d{4}-\d{2}-\d{2}$/.test(date);
+  
+  // Parse date safely - fallback to today if invalid
+  const currentDate = isValidDate ? parseDateFromUrl(date) : new Date();
+  const dateStr = isValidDate ? date : formatDateForUrl(new Date());
+  
+  // Verify the parsed date is valid
+  const isDateValid = !isNaN(currentDate.getTime());
+  
+  const events = isDateValid ? getEventsForDate(dateStr) : [];
 
   const vratEvents = events.filter(e => e.type === "vrat");
   const utsavEvents = events.filter(e => e.type === "utsav");
@@ -29,7 +38,7 @@ export default function DayDetailPage() {
   };
 
   const handleAddEvent = () => {
-    navigate(`/event/new?date=${date}`);
+    navigate(`/event/new?date=${dateStr}`);
   };
 
   const handleReminderToggle = (eventId: string, enabled: boolean) => {
@@ -37,14 +46,14 @@ export default function DayDetailPage() {
     console.log(`Reminder ${enabled ? 'enabled' : 'disabled'} for event ${eventId}`);
   };
 
-  // Get day and week info
-  const dayOfWeek = format(currentDate, "EEEE");
-  const formattedDate = format(currentDate, "d MMMM yyyy");
-  const isToday = format(new Date(), "yyyy-MM-dd") === date;
+  // Get day and week info - only format if date is valid
+  const dayOfWeek = isDateValid ? format(currentDate, "EEEE") : "";
+  const formattedDate = isDateValid ? format(currentDate, "d MMMM yyyy") : "";
+  const isToday = isDateValid && format(new Date(), "yyyy-MM-dd") === dateStr;
 
   return (
     <AppLayout 
-      title={format(currentDate, "d MMM yyyy")} 
+      title={isDateValid ? format(currentDate, "d MMM yyyy") : "Invalid Date"} 
       showBack
     >
       {/* Date Header */}
