@@ -1,18 +1,150 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { EventCard } from "@/components/events";
+import { Button } from "@/components/ui/button";
+import { getEventsForDate } from "@/data/hinduEvents2026";
+import { parseDateFromUrl, formatDateForUrl } from "@/utils/calendarUtils";
+import { format, addDays, subDays } from "date-fns";
+import { ChevronLeft, ChevronRight, Plus, Calendar, Sunrise } from "lucide-react";
+import { FloatingActionButton } from "@/components/layout/FloatingActionButton";
 
 export default function DayDetailPage() {
   const { date } = useParams<{ date: string }>();
+  const navigate = useNavigate();
+
+  const currentDate = date ? parseDateFromUrl(date) : new Date();
+  const events = date ? getEventsForDate(date) : [];
+
+  const vratEvents = events.filter(e => e.type === "vrat");
+  const utsavEvents = events.filter(e => e.type === "utsav");
+
+  const handlePrevDay = () => {
+    const prevDate = subDays(currentDate, 1);
+    navigate(`/day/${formatDateForUrl(prevDate)}`);
+  };
+
+  const handleNextDay = () => {
+    const nextDate = addDays(currentDate, 1);
+    navigate(`/day/${formatDateForUrl(nextDate)}`);
+  };
+
+  const handleAddEvent = () => {
+    navigate(`/event/new?date=${date}`);
+  };
+
+  const handleReminderToggle = (eventId: string, enabled: boolean) => {
+    // TODO: Implement reminder persistence with Supabase
+    console.log(`Reminder ${enabled ? 'enabled' : 'disabled'} for event ${eventId}`);
+  };
+
+  // Get day and week info
+  const dayOfWeek = format(currentDate, "EEEE");
+  const formattedDate = format(currentDate, "d MMMM yyyy");
+  const isToday = format(new Date(), "yyyy-MM-dd") === date;
 
   return (
-    <AppLayout title={date || "Day Details"} showBack>
-      <div className="p-4">
-        <div className="rounded-lg border bg-card p-6 text-center">
-          <p className="text-muted-foreground">
-            Day detail view will be implemented in Phase 3
-          </p>
+    <AppLayout 
+      title={format(currentDate, "d MMM yyyy")} 
+      showBack
+    >
+      {/* Date Header */}
+      <div className="bg-gradient-to-r from-primary/10 to-secondary/10 px-4 py-6">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handlePrevDay}
+            className="shrink-0"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+
+          <div className="text-center flex-1">
+            <p className="text-sm text-muted-foreground">{dayOfWeek}</p>
+            <h1 className="text-2xl font-display font-bold text-foreground">
+              {formattedDate}
+            </h1>
+            {isToday && (
+              <span className="inline-flex items-center gap-1 text-xs text-primary mt-1">
+                <Sunrise className="h-3 w-3" />
+                Today
+              </span>
+            )}
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleNextDay}
+            className="shrink-0"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
         </div>
       </div>
+
+      {/* Events Content */}
+      <div className="p-4 space-y-6 pb-24">
+        {events.length === 0 ? (
+          <div className="text-center py-12">
+            <Calendar className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+            <h3 className="font-display font-semibold text-lg text-foreground mb-2">
+              No Events
+            </h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              There are no Hindu festivals or Vrats on this day.
+            </p>
+            <Button onClick={handleAddEvent} variant="outline" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Custom Event
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Vrats Section */}
+            {vratEvents.length > 0 && (
+              <section>
+                <h2 className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-3">
+                  <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+                  Vrats (Fasting Days)
+                </h2>
+                <div className="space-y-3">
+                  {vratEvents.map((event, index) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      onReminderToggle={handleReminderToggle}
+                      defaultExpanded={index === 0}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Utsavs Section */}
+            {utsavEvents.length > 0 && (
+              <section>
+                <h2 className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-3">
+                  <span className="h-2.5 w-2.5 rounded-full bg-secondary" />
+                  Utsavs (Festivals)
+                </h2>
+                <div className="space-y-3">
+                  {utsavEvents.map((event, index) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      onReminderToggle={handleReminderToggle}
+                      defaultExpanded={vratEvents.length === 0 && index === 0}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
+      </div>
+
+      <FloatingActionButton onClick={handleAddEvent} />
     </AppLayout>
   );
 }
