@@ -65,8 +65,11 @@ export default function ProfilePage() {
 
   const handleSignOut = async () => {
     await signOut();
-    toast({ title: "Signed out", description: "You have been signed out successfully" });
-    navigate("/auth");
+    toast({ 
+      title: "Signed out", 
+      description: "You have been signed out successfully" 
+    });
+    navigate("/");
   };
 
   const displayName = profile?.display_name || user?.user_metadata?.full_name || user?.email || "Guest User";

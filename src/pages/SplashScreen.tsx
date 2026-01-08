@@ -2,29 +2,40 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 export default function SplashScreen() {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     // Fade in animation
     const timer = setTimeout(() => setIsVisible(true), 100);
-    
-    // Auto-redirect after 4 seconds
-    const redirectTimer = setTimeout(() => {
-      navigate("/auth");
-    }, 4000);
+    return () => clearTimeout(timer);
+  }, []);
 
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(redirectTimer);
-    };
-  }, [navigate]);
+  useEffect(() => {
+    // Wait for auth check, then redirect accordingly
+    if (!loading) {
+      const redirectTimer = setTimeout(() => {
+        if (user) {
+          navigate("/calendar");
+        } else {
+          navigate("/auth");
+        }
+      }, 3000);
+      return () => clearTimeout(redirectTimer);
+    }
+  }, [loading, user, navigate]);
 
   const handleGetStarted = () => {
-    navigate("/auth");
+    if (user) {
+      navigate("/calendar");
+    } else {
+      navigate("/auth");
+    }
   };
 
   return (
