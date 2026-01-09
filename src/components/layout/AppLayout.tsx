@@ -28,11 +28,15 @@ export function AppLayout({
         <Header title={title} showBack={showBack} rightElement={headerRight} />
       )}
       
-      <main className={cn(
-        "flex-1",
-        showNav && "pb-16", // Space for bottom navigation
-        className
-      )}>
+      <main 
+        className={cn(
+          "flex-1",
+          showNav && "pb-16", // Space for bottom navigation
+          className
+        )}
+        role="main"
+        aria-label={title || "Main content"}
+      >
         {children}
       </main>
       
