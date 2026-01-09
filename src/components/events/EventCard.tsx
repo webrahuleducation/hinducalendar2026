@@ -14,11 +14,14 @@ import {
   ChevronDown, 
   Share2, 
   Calendar as CalendarIcon,
-  Sparkles 
+  Sparkles,
+  CalendarPlus
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
+import { useShare } from "@/hooks/useShare";
+import { useToast } from "@/hooks/use-toast";
 
 interface EventCardProps {
   event: CalendarEvent;
@@ -37,6 +40,8 @@ export function EventCard({
 }: EventCardProps) {
   const [isOpen, setIsOpen] = useState(defaultExpanded);
   const [reminder, setReminder] = useState(reminderEnabled);
+  const { shareEvent, addToCalendar } = useShare();
+  const { toast } = useToast();
 
   const handleReminderChange = (enabled: boolean) => {
     setReminder(enabled);
@@ -44,18 +49,18 @@ export function EventCard({
   };
 
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: event.title,
-          text: `${event.title} - ${event.description || ''}`,
-          url: window.location.href,
-        });
-      } catch (err) {
-        // User cancelled or share failed
-      }
+    const success = await shareEvent(event);
+    if (success) {
+      toast({
+        title: "Shared successfully",
+        description: "Event details have been shared",
+      });
     }
     onShare?.(event);
+  };
+
+  const handleAddToCalendar = () => {
+    addToCalendar(event);
   };
 
   const eventDate = parseISO(event.date);
@@ -148,15 +153,26 @@ export function EventCard({
                   onCheckedChange={handleReminderChange}
                 />
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleShare}
-                className="gap-2"
-              >
-                <Share2 className="h-4 w-4" />
-                Share
-              </Button>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAddToCalendar}
+                  className="gap-1.5"
+                  title="Add to calendar"
+                >
+                  <CalendarPlus className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleShare}
+                  className="gap-1.5"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Share
+                </Button>
+              </div>
             </div>
           </CardContent>
         </CollapsibleContent>

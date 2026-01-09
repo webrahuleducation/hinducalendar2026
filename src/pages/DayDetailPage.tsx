@@ -7,10 +7,16 @@ import { parseDateFromUrl, formatDateForUrl } from "@/utils/calendarUtils";
 import { format, addDays, subDays } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus, Calendar, Sunrise } from "lucide-react";
 import { FloatingActionButton } from "@/components/layout/FloatingActionButton";
+import { useRealtimeReminders } from "@/hooks/useRealtimeReminders";
+import { useNotifications } from "@/hooks/useNotifications";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DayDetailPage() {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
+  const { isReminderEnabled, toggleReminder } = useRealtimeReminders();
+  const { scheduleEventReminder, cancelEventReminder } = useNotifications();
+  const { toast } = useToast();
 
   // Validate date format (YYYY-MM-DD)
   const isValidDate = date && /^\d{4}-\d{2}-\d{2}$/.test(date);
@@ -41,9 +47,31 @@ export default function DayDetailPage() {
     navigate(`/event/new?date=${dateStr}`);
   };
 
-  const handleReminderToggle = (eventId: string, enabled: boolean) => {
-    // TODO: Implement reminder persistence with Supabase
-    console.log(`Reminder ${enabled ? 'enabled' : 'disabled'} for event ${eventId}`);
+  const handleReminderToggle = async (eventId: string, enabled: boolean, eventTitle: string) => {
+    try {
+      await toggleReminder(eventId, dateStr);
+      
+      if (enabled) {
+        await scheduleEventReminder(eventId, eventTitle, dateStr);
+        toast({
+          title: "Reminder set",
+          description: `You'll be reminded about ${eventTitle}`,
+        });
+      } else {
+        cancelEventReminder(eventId);
+        toast({
+          title: "Reminder removed",
+          description: `Reminder for ${eventTitle} has been removed`,
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling reminder:", error);
+      toast({
+        title: "Error",
+        description: "Could not update reminder. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Get day and week info - only format if date is valid
@@ -122,7 +150,8 @@ export default function DayDetailPage() {
                     <EventCard
                       key={event.id}
                       event={event}
-                      onReminderToggle={handleReminderToggle}
+                      onReminderToggle={(id, enabled) => handleReminderToggle(id, enabled, event.title)}
+                      reminderEnabled={isReminderEnabled(event.id)}
                       defaultExpanded={index === 0}
                     />
                   ))}
@@ -142,7 +171,8 @@ export default function DayDetailPage() {
                     <EventCard
                       key={event.id}
                       event={event}
-                      onReminderToggle={handleReminderToggle}
+                      onReminderToggle={(id, enabled) => handleReminderToggle(id, enabled, event.title)}
+                      reminderEnabled={isReminderEnabled(event.id)}
                       defaultExpanded={vratEvents.length === 0 && index === 0}
                     />
                   ))}
