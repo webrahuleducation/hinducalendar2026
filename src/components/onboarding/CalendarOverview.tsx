@@ -8,6 +8,8 @@ const MONTHS = [
   "Sep", "Oct", "Nov", "Dec"
 ];
 
+const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
+
 interface MonthMiniProps {
   month: number;
   year: number;
@@ -15,9 +17,16 @@ interface MonthMiniProps {
 
 function MonthMini({ month, year }: MonthMiniProps) {
   const events = useMemo(() => getEventsForMonth(month, year), [month, year]);
-  const vratCount = events.filter(e => e.type === 'vrat').length;
-  const utsavCount = events.filter(e => e.type === 'utsav').length;
-  const totalEvents = vratCount + utsavCount;
+  
+  // Get event dates for highlighting
+  const eventDates = useMemo(() => {
+    const dates: Record<number, 'vrat' | 'utsav'> = {};
+    events.forEach(e => {
+      const day = new Date(e.date).getDate();
+      dates[day] = e.type as 'vrat' | 'utsav';
+    });
+    return dates;
+  }, [events]);
 
   // Get first day of month and total days
   const firstDay = new Date(year, month, 1).getDay();
@@ -28,58 +37,62 @@ function MonthMini({ month, year }: MonthMiniProps) {
     const arr: (number | null)[] = [];
     for (let i = 0; i < firstDay; i++) arr.push(null);
     for (let i = 1; i <= daysInMonth; i++) arr.push(i);
+    // Pad to complete last row
+    while (arr.length % 7 !== 0) arr.push(null);
     return arr;
   }, [firstDay, daysInMonth]);
 
   return (
-    <div className="flex flex-col items-center p-1">
-      <div className="text-[8px] font-semibold text-primary mb-0.5">
+    <div className="flex flex-col items-center p-1 bg-card/50 rounded-md">
+      <div className="text-[7px] font-bold text-primary mb-0.5 uppercase tracking-wide">
         {MONTHS[month]}
       </div>
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 gap-[1px] mb-[1px]">
+        {WEEKDAYS.map((day, idx) => (
+          <div key={idx} className="w-[8px] h-[6px] text-[4px] text-muted-foreground font-medium flex items-center justify-center">
+            {day}
+          </div>
+        ))}
+      </div>
+      {/* Calendar days */}
       <div className="grid grid-cols-7 gap-[1px]">
-        {days.slice(0, 35).map((day, idx) => (
+        {days.map((day, idx) => (
           <div
             key={idx}
             className={cn(
-              "w-[6px] h-[6px] rounded-[1px] text-[3px] flex items-center justify-center",
+              "w-[8px] h-[8px] rounded-[1px] text-[4px] flex items-center justify-center font-medium",
               day === null
                 ? "bg-transparent"
-                : "bg-muted/60"
+                : eventDates[day] === 'vrat'
+                  ? "bg-vrat text-vrat-foreground"
+                  : eventDates[day] === 'utsav'
+                    ? "bg-secondary text-secondary-foreground"
+                    : "bg-muted/40 text-foreground/70"
             )}
-          />
+          >
+            {day}
+          </div>
         ))}
       </div>
-      {totalEvents > 0 && (
-        <div className="flex gap-0.5 mt-0.5">
-          {vratCount > 0 && (
-            <span className="text-[5px] text-vrat font-medium">{vratCount}V</span>
-          )}
-          {utsavCount > 0 && (
-            <span className="text-[5px] text-secondary font-medium">{utsavCount}U</span>
-          )}
-        </div>
-      )}
     </div>
   );
 }
 
 export default function CalendarOverview() {
   return (
-    <div className="bg-card/80 backdrop-blur-sm rounded-lg p-3 shadow-spiritual border border-border/50">
-      <div className="text-[10px] text-center font-semibold text-foreground mb-2">
-        📅 2026 Calendar Overview
-      </div>
+    <div className="bg-card/80 backdrop-blur-sm rounded-lg p-2 shadow-spiritual border border-border/50">
       <div className="grid grid-cols-4 gap-1">
         {Array.from({ length: 12 }, (_, i) => (
           <MonthMini key={i} month={i} year={2026} />
         ))}
       </div>
-      <div className="flex justify-center gap-3 mt-2 text-[8px] text-muted-foreground">
+      <div className="flex justify-center gap-3 mt-1.5 text-[7px] text-muted-foreground">
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-vrat" /> Vrat
+          <span className="w-1.5 h-1.5 rounded-full bg-vrat" /> Vrat
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-secondary" /> Utsav
+          <span className="w-1.5 h-1.5 rounded-full bg-secondary" /> Utsav
         </span>
       </div>
     </div>
