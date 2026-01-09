@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { InstallPrompt, OfflineIndicator } from "@/components/pwa";
 
 // Pages
 import SplashScreen from "./pages/SplashScreen";
@@ -26,6 +27,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <OfflineIndicator />
         <BrowserRouter>
           <Routes>
             {/* Splash & Auth */}
@@ -58,6 +60,7 @@ const App = () => (
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <InstallPrompt />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

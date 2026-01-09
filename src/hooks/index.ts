@@ -6,3 +6,5 @@ export { useIsMobile } from "./use-mobile";
 export { useNotifications } from "./useNotifications";
 export { useShare } from "./useShare";
 export { useSearch } from "./useSearch";
+export { useOffline } from "./useOffline";
+export { useInstallPrompt } from "./useInstallPrompt";
