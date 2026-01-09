@@ -11,14 +11,19 @@ export function useInstallPrompt() {
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    // Check if already installed
-    if (window.matchMedia("(display-mode: standalone)").matches) {
+    // Check if already installed (standalone mode)
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true;
+    
+    if (isStandalone) {
       setIsInstalled(true);
       return;
     }
 
     const handleBeforeInstall = (e: Event) => {
+      // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
+      // Save the event for triggering later
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
@@ -27,6 +32,7 @@ export function useInstallPrompt() {
       setIsInstalled(true);
       setIsInstallable(false);
       setDeferredPrompt(null);
+      console.log("PWA was installed");
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
@@ -39,17 +45,24 @@ export function useInstallPrompt() {
   }, []);
 
   const promptInstall = useCallback(async () => {
-    if (!deferredPrompt) return false;
+    if (!deferredPrompt) {
+      console.log("No install prompt available");
+      return false;
+    }
 
     try {
+      // Show the install prompt
       await deferredPrompt.prompt();
+      // Wait for the user's response
       const { outcome } = await deferredPrompt.userChoice;
+      console.log("User response to install prompt:", outcome);
       
       if (outcome === "accepted") {
         setIsInstalled(true);
         setIsInstallable(false);
       }
       
+      // Clear the prompt - it can only be used once
       setDeferredPrompt(null);
       return outcome === "accepted";
     } catch (error) {
@@ -59,8 +72,11 @@ export function useInstallPrompt() {
   }, [deferredPrompt]);
 
   // iOS detection for manual install instructions
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const isInStandaloneMode = window.matchMedia("(display-mode: standalone)").matches;
+  const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isInStandaloneMode = typeof window !== "undefined" && (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone === true
+  );
 
   return {
     isInstallable,
@@ -68,6 +84,6 @@ export function useInstallPrompt() {
     promptInstall,
     isIOS,
     isInStandaloneMode,
-    showIOSInstructions: isIOS && !isInStandaloneMode,
+    showIOSInstructions: isIOS && !isInStandaloneMode && !isInstalled,
   };
 }
