@@ -2,20 +2,23 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Bell, Moon, Globe, LogOut } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { User, Bell, Moon, Globe, LogOut, Calendar, AlertCircle, CheckCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { profileService, Profile } from "@/services/profileService";
+import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const { permissionStatus, isSupported, requestPermission, scheduledNotifications } = useNotifications();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
@@ -53,10 +56,28 @@ export default function ProfilePage() {
   };
 
   const handleNotificationsToggle = async (enabled: boolean) => {
+    if (enabled && permissionStatus !== "granted") {
+      const granted = await requestPermission();
+      if (!granted) {
+        toast({
+          title: "Notifications blocked",
+          description: "Please enable notifications in your browser settings",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     setNotifications(enabled);
     if (user) {
       try {
         await profileService.updateProfile(user.id, { notifications_enabled: enabled });
+        toast({
+          title: enabled ? "Notifications enabled" : "Notifications disabled",
+          description: enabled 
+            ? "You'll receive reminders for your events" 
+            : "You won't receive event reminders",
+        });
       } catch (error) {
         console.error("Error updating notifications:", error);
       }
@@ -96,24 +117,73 @@ export default function ProfilePage() {
           </CardHeader>
         </Card>
 
-        {/* Settings */}
+        {/* Notification Settings */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Preferences</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
+              Notifications
+            </CardTitle>
+            <CardDescription className="text-sm">
+              {scheduledNotifications.length > 0 
+                ? `${scheduledNotifications.length} reminders scheduled`
+                : "No reminders scheduled"}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Bell className="h-5 w-5 text-muted-foreground" />
-                <Label htmlFor="notifications">Notifications</Label>
+              <div className="space-y-0.5">
+                <Label htmlFor="notifications">Enable Notifications</Label>
+                <p className="text-xs text-muted-foreground">
+                  Get reminders for festivals and events
+                </p>
               </div>
               <Switch 
                 id="notifications" 
                 checked={notifications}
                 onCheckedChange={handleNotificationsToggle}
+                disabled={!isSupported}
               />
             </div>
             
+            {/* Permission Status */}
+            <div className="flex items-center gap-2 text-sm">
+              {permissionStatus === "granted" ? (
+                <>
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-muted-foreground">Notifications allowed</span>
+                </>
+              ) : permissionStatus === "denied" ? (
+                <>
+                  <AlertCircle className="h-4 w-4 text-destructive" />
+                  <span className="text-muted-foreground">Notifications blocked - enable in browser settings</span>
+                </>
+              ) : permissionStatus === "unsupported" ? (
+                <>
+                  <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Notifications not supported</span>
+                </>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={requestPermission}
+                  className="gap-2"
+                >
+                  <Bell className="h-4 w-4" />
+                  Enable Notifications
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Preferences */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Preferences</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Moon className="h-5 w-5 text-muted-foreground" />
@@ -141,6 +211,25 @@ export default function ProfilePage() {
                 </SelectContent>
               </Select>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Calendar Integration Info */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Calendar Integration
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              Add events to your device calendar using the "Add to Calendar" button on any event.
+            </p>
+            <Badge variant="secondary" className="gap-1">
+              <CheckCircle className="h-3 w-3" />
+              iCal/ICS format supported
+            </Badge>
           </CardContent>
         </Card>
 

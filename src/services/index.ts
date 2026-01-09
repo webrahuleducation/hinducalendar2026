@@ -10,3 +10,9 @@ export type { EventReminder, CreateReminderInput } from "./reminderService";
 
 export { predefinedEventService } from "./predefinedEventService";
 export type { PredefinedEventFilters } from "./predefinedEventService";
+
+export { notificationService } from "./notificationService";
+export type { NotificationSettings, ScheduledNotification } from "./notificationService";
+
+export { shareService } from "./shareService";
+export type { ShareData } from "./shareService";
