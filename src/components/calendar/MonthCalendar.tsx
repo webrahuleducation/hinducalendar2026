@@ -15,7 +15,7 @@ export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
   const utsavCount = monthEvents.filter((e) => e.type === "utsav").length;
 
   return (
-    <div className="h-full flex flex-col rounded-xl border bg-card shadow-sm overflow-hidden">
+    <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
       {/* Month header */}
       <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-4 border-b">
         <div className="flex items-center justify-between">
@@ -43,7 +43,7 @@ export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
       </div>
 
       {/* Calendar grid */}
-      <div className="p-3 flex-1">
+      <div className="p-3">
         {/* Weekday headers */}
         <div className="grid grid-cols-7 mb-2">
           {weekDays.map((day) => (
@@ -69,35 +69,31 @@ export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
       </div>
 
       {/* Quick event preview */}
-      <div className="border-t bg-muted/30 p-3 mt-auto min-h-[72px]">
-        {monthEvents.length > 0 ? (
-          <>
-            <p className="text-xs text-muted-foreground mb-2">Upcoming this month:</p>
-            <div className="flex flex-wrap gap-1">
-              {monthEvents.slice(0, 3).map((event) => (
-                <Badge
-                  key={event.id}
-                  variant="secondary"
-                  className={cn(
-                    "text-xs",
-                    event.type === "vrat" && "bg-primary/15 text-primary hover:bg-primary/25",
-                    event.type === "utsav" && "bg-secondary/15 text-secondary hover:bg-secondary/25"
-                  )}
-                >
-                  {event.title}
-                </Badge>
-              ))}
-              {monthEvents.length > 3 && (
-                <Badge variant="outline" className="text-xs">
-                  +{monthEvents.length - 3} more
-                </Badge>
-              )}
-            </div>
-          </>
-        ) : (
-          <p className="text-xs text-muted-foreground">No events this month</p>
-        )}
-      </div>
+      {monthEvents.length > 0 && (
+        <div className="border-t bg-muted/30 p-3">
+          <p className="text-xs text-muted-foreground mb-2">Upcoming this month:</p>
+          <div className="flex flex-wrap gap-1">
+            {monthEvents.slice(0, 3).map((event) => (
+              <Badge
+                key={event.id}
+                variant="secondary"
+                className={cn(
+                  "text-xs",
+                  event.type === "vrat" && "bg-primary/15 text-primary hover:bg-primary/25",
+                  event.type === "utsav" && "bg-secondary/15 text-secondary hover:bg-secondary/25"
+                )}
+              >
+                {event.title}
+              </Badge>
+            ))}
+            {monthEvents.length > 3 && (
+              <Badge variant="outline" className="text-xs">
+                +{monthEvents.length - 3} more
+              </Badge>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
