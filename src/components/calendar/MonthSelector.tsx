@@ -23,7 +23,7 @@ export function MonthSelector({ currentMonth, onMonthSelect }: MonthSelectorProp
       value={String(currentMonth)}
       onValueChange={(value) => onMonthSelect(Number(value))}
     >
-      <SelectTrigger className="w-[140px] bg-background/80 backdrop-blur-sm">
+      <SelectTrigger className="w-[125px] bg-background/80 backdrop-blur-sm">
         <SelectValue placeholder="Select month" />
       </SelectTrigger>
       <SelectContent>
