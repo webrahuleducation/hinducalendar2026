@@ -15,7 +15,7 @@ export default function CalendarPage() {
     if (now.getFullYear() === 2026) return now.getMonth();
     return 0;
   });
-  
+
   const monthRefs = useRef<(HTMLDivElement | null)[]>([]);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isScrollingToMonth = useRef(false);
@@ -91,7 +91,7 @@ export default function CalendarPage() {
       <div ref={scrollContainerRef} className="flex-1 overflow-auto px-4 py-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {yearData.map((monthData, index) => (
-            <div key={`${monthData.year}-${monthData.month}`} ref={(el) => (monthRefs.current[index] = el)}>
+            <div key={`${monthData.year}-${monthData.month}`} ref={(el) => (monthRefs.current[index] = el)} className="h-full">
               <MonthCalendar monthData={monthData} onDateClick={handleDateClick} />
             </div>
           ))}

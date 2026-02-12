@@ -23,7 +23,7 @@ export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
   ] as const;
 
   return (
-    <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+    <div className="rounded-xl border bg-card shadow-sm overflow-hidden h-full flex flex-col">
       <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-4 border-b">
         <div className="flex items-center justify-between">
           <div>
@@ -47,7 +47,7 @@ export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
         </div>
       </div>
 
-      <div className="p-3">
+      <div className="p-3 flex-1">
         <div className="grid grid-cols-7 mb-2">
           {weekDayKeys.map((key) => (
             <div key={key} className="text-center text-xs font-medium text-muted-foreground py-2">
