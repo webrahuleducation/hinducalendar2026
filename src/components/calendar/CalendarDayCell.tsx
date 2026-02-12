@@ -9,6 +9,7 @@ interface CalendarDayCellProps {
 export function CalendarDayCell({ day, onClick }: CalendarDayCellProps) {
   const hasVrat = day.events.some((e) => e.type === "vrat");
   const hasUtsav = day.events.some((e) => e.type === "utsav");
+  const hasCustom = day.events.some((e) => e.type === "custom");
   const hasEvents = day.events.length > 0;
 
   return (
@@ -26,7 +27,7 @@ export function CalendarDayCell({ day, onClick }: CalendarDayCellProps) {
       {/* Date number */}
       <span className="z-10">{day.date.getDate()}</span>
 
-      {/* Event indicators */}
+      {/* Event indicators - stacked dots */}
       {hasEvents && day.isCurrentMonth && (
         <div className="absolute bottom-1 flex gap-0.5">
           {hasVrat && (
@@ -34,6 +35,9 @@ export function CalendarDayCell({ day, onClick }: CalendarDayCellProps) {
           )}
           {hasUtsav && (
             <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
+          )}
+          {hasCustom && (
+            <span className="h-1.5 w-1.5 rounded-full bg-custom" />
           )}
         </div>
       )}
@@ -43,6 +47,7 @@ export function CalendarDayCell({ day, onClick }: CalendarDayCellProps) {
         <div
           className={cn(
             "absolute inset-0.5 rounded-lg -z-0 opacity-20",
+            hasCustom && !hasVrat && !hasUtsav && "bg-custom",
             hasUtsav && "bg-secondary",
             hasVrat && !hasUtsav && "bg-primary"
           )}

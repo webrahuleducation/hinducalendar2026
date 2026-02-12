@@ -1,6 +1,6 @@
 import { Calendar, Star, BookOpen, User } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface NavItemProps {
   to: string;
@@ -20,14 +20,16 @@ const NavItem = ({ to, icon: Icon, label }: NavItemProps) => (
   </NavLink>
 );
 
-const navItems: NavItemProps[] = [
-  { to: "/calendar", icon: Calendar, label: "Calendar" },
-  { to: "/events", icon: Star, label: "My Events" },
-  { to: "/library", icon: BookOpen, label: "Library" },
-  { to: "/profile", icon: User, label: "Profile" },
-];
-
 export function BottomNav() {
+  const { t } = useLanguage();
+
+  const navItems: NavItemProps[] = [
+    { to: "/calendar", icon: Calendar, label: t("nav.calendar") },
+    { to: "/events", icon: Star, label: t("nav.myEvents") },
+    { to: "/library", icon: BookOpen, label: t("nav.library") },
+    { to: "/profile", icon: User, label: t("nav.profile") },
+  ];
+
   return (
     <nav 
       className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-sm safe-area-pb"

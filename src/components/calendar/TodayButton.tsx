@@ -1,11 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { CalendarDays } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TodayButtonProps {
   onClick: () => void;
 }
 
 export function TodayButton({ onClick }: TodayButtonProps) {
+  const { t } = useLanguage();
+
   return (
     <Button
       variant="outline"
@@ -14,7 +17,7 @@ export function TodayButton({ onClick }: TodayButtonProps) {
       className="gap-2 bg-background/80 backdrop-blur-sm"
     >
       <CalendarDays className="h-4 w-4" />
-      Today
+      {t("calendar.today")}
     </Button>
   );
 }

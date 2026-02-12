@@ -60,6 +60,10 @@ export default {
           DEFAULT: "hsl(var(--utsav))",
           foreground: "hsl(var(--utsav-foreground))",
         },
+        custom: {
+          DEFAULT: "hsl(var(--custom))",
+          foreground: "hsl(var(--custom-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

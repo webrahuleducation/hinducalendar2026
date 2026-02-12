@@ -47,6 +47,10 @@
     --utsav: 262 53% 52%;
     --utsav-foreground: 0 0% 100%;
 
+    /* Custom event indicator - Teal */
+    --custom: 174 72% 40%;
+    --custom-foreground: 0 0% 100%;
+
     /* Destructive */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
@@ -108,6 +112,10 @@
     --vrat-foreground: 220 30% 10%;
     --utsav: 262 53% 65%;
     --utsav-foreground: 0 0% 100%;
+
+    /* Custom event in dark mode */
+    --custom: 174 72% 50%;
+    --custom-foreground: 220 30% 10%;
 
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
