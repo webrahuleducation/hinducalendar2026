@@ -5,8 +5,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import { TimeFormatProvider } from "@/contexts/TimeFormatContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { InstallPrompt, OfflineIndicator } from "@/components/pwa";
+import { OfflineIndicator } from "@/components/pwa";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 // Lazy-loaded pages for better performance
@@ -33,8 +36,8 @@ function PageLoader() {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 30 * 60 * 1000, // 30 minutes (previously cacheTime)
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -43,49 +46,47 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <OfflineIndicator />
-        <BrowserRouter>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              {/* Splash & Auth */}
-              <Route path="/" element={<SplashScreen />} />
-              <Route path="/auth" element={<AuthScreen />} />
-              
-              {/* Main App Routes (accessible without auth) */}
-              <Route path="/calendar" element={<CalendarPage />} />
-              <Route path="/day/:date" element={<DayDetailPage />} />
-              <Route path="/library" element={<LibraryPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              
-              {/* Protected Routes (require authentication) */}
-              <Route path="/events" element={
-                <ProtectedRoute>
-                  <EventsPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/event/new" element={
-                <ProtectedRoute>
-                  <CreateEventPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/event/:id" element={
-                <ProtectedRoute>
-                  <EventDetailPage />
-                </ProtectedRoute>
-              } />
-              
-              {/* Catch-all */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-          <InstallPrompt />
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <TimeFormatProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <OfflineIndicator />
+              <BrowserRouter>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    <Route path="/" element={<SplashScreen />} />
+                    <Route path="/auth" element={<AuthScreen />} />
+                    <Route path="/calendar" element={<CalendarPage />} />
+                    <Route path="/day/:date" element={<DayDetailPage />} />
+                    <Route path="/library" element={<LibraryPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/events" element={
+                      <ProtectedRoute>
+                        <EventsPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/event/new" element={
+                      <ProtectedRoute>
+                        <CreateEventPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/event/:id" element={
+                      <ProtectedRoute>
+                        <EventDetailPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </BrowserRouter>
+            </TooltipProvider>
+          </AuthProvider>
+        </TimeFormatProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

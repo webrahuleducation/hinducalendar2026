@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { ChevronRight } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface EventListItemProps {
   event: CalendarEvent;
@@ -13,6 +14,13 @@ interface EventListItemProps {
 
 export function EventListItem({ event, onClick, showDate = true }: EventListItemProps) {
   const eventDate = parseISO(event.date);
+  const { t } = useLanguage();
+
+  const getTypeLabel = () => {
+    if (event.type === "vrat") return t("calendar.vrat");
+    if (event.type === "utsav") return t("calendar.utsav");
+    return t("calendar.custom");
+  };
 
   return (
     <Card 
@@ -20,7 +28,8 @@ export function EventListItem({ event, onClick, showDate = true }: EventListItem
         "cursor-pointer hover:shadow-md transition-all duration-200",
         "hover:scale-[1.01] active:scale-[0.99]",
         event.type === "vrat" && "border-l-4 border-l-primary",
-        event.type === "utsav" && "border-l-4 border-l-secondary"
+        event.type === "utsav" && "border-l-4 border-l-secondary",
+        event.type === "custom" && "border-l-4 border-l-custom"
       )}
       onClick={() => onClick?.(event)}
     >
@@ -33,10 +42,11 @@ export function EventListItem({ event, onClick, showDate = true }: EventListItem
                 className={cn(
                   "text-xs",
                   event.type === "vrat" && "bg-primary/10 text-primary border-primary/30",
-                  event.type === "utsav" && "bg-secondary/10 text-secondary border-secondary/30"
+                  event.type === "utsav" && "bg-secondary/10 text-secondary border-secondary/30",
+                  event.type === "custom" && "bg-custom/10 text-custom border-custom/30"
                 )}
               >
-                {event.type === "vrat" ? "Vrat" : "Utsav"}
+                {getTypeLabel()}
               </Badge>
               {showDate && (
                 <span className="text-xs text-muted-foreground">
