@@ -14,29 +14,26 @@ export default function OnboardingSlide2({ isVisible }: OnboardingSlide2Props) {
       {/* Profile Image Placeholder */}
       <div className="relative flex-shrink-0">
         <div className="h-32 w-32 sm:h-36 sm:w-36 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 border-4 border-primary/30 flex items-center justify-center overflow-hidden shadow-spiritual">
-          {/* Replace this with actual image: <img src="/path-to-image.jpg" alt="Krishna Tiwari" className="h-full w-full object-cover" /> */}
+          <img src="/images/krishnatiwari.png" alt="SMT. Krishna Tiwari" className="h-full w-full object-cover" />
           <User className="h-20 w-20 text-primary/50" />
         </div>
-        <div className="absolute -bottom-1 -right-1 h-10 w-10 rounded-full bg-accent flex items-center justify-center shadow-lg">
-          <span className="text-lg">🙏</span>
-        </div>
       </div>
-      
+
       {/* Name */}
       <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground mt-2">
         SMT. KRISHNA TIWARI
       </h2>
-      
+
       {/* Qualification */}
       <p className="text-xs sm:text-sm text-muted-foreground font-medium tracking-wide max-w-xs">
         M.Sc, M.Ed, P.G.D.Ed.M, D.D.H.M, & D.FS.M
       </p>
-      
+
       {/* Designation */}
       <p className="text-base sm:text-lg font-semibold text-primary">
         Jt. Secretary - Rahul Education
       </p>
-      
+
       {/* Quote */}
       <div className="mt-3 w-full max-w-sm bg-card/80 backdrop-blur-sm rounded-xl p-5 shadow-spiritual border border-border/50">
         <p className="text-sm sm:text-base italic text-foreground leading-relaxed">

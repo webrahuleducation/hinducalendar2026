@@ -15,7 +15,7 @@ export default function OnboardingSlide1({ isVisible }: OnboardingSlide1Props) {
       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
         <span className="font-devanagari text-4xl">ॐ</span>
       </div>
-      
+
       {/* App Title */}
       <div className="space-y-1">
         <h1 className="font-serif text-2xl font-bold text-foreground sm:text-3xl">
@@ -25,10 +25,10 @@ export default function OnboardingSlide1({ isVisible }: OnboardingSlide1Props) {
           Calendar 2026
         </h2>
       </div>
-      
+
       {/* Calendar Overview */}
       <CalendarOverview />
-      
+
       {/* Tagline */}
       <p className="max-w-xs text-sm text-muted-foreground">
         Your complete spiritual planner for festivals, fasting days, and sacred celebrations

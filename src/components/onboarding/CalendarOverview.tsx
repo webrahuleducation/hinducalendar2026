@@ -17,7 +17,7 @@ interface MonthMiniProps {
 
 function MonthMini({ month, year }: MonthMiniProps) {
   const events = useMemo(() => getEventsForMonth(month, year), [month, year]);
-  
+
   // Get event dates for highlighting
   const eventDates = useMemo(() => {
     const dates: Record<number, 'vrat' | 'utsav'> = {};
@@ -61,14 +61,14 @@ function MonthMini({ month, year }: MonthMiniProps) {
           <div
             key={idx}
             className={cn(
-              "w-[14px] h-[14px] rounded-[2px] text-[7px] flex items-center justify-center font-semibold",
+              "w-[8px] h-[8px] rounded-[1px] text-[4px] flex items-center justify-center font-medium",
               day === null
                 ? "bg-transparent"
                 : eventDates[day] === 'vrat'
                   ? "bg-vrat text-vrat-foreground"
                   : eventDates[day] === 'utsav'
                     ? "bg-secondary text-secondary-foreground"
-                    : "bg-muted/50 text-foreground/80"
+                    : "bg-muted/40 text-foreground/70"
             )}
           >
             {day}
@@ -87,9 +87,9 @@ export default function CalendarOverview() {
           <MonthMini key={i} month={i} year={2026} />
         ))}
       </div>
-      <div className="flex justify-center gap-4 mt-2.5 text-[9px] text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-vrat" /> Vrat
+      <div className="flex justify-center gap-3 mt-1.5 text-[7px] text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-vrat" /> Vrat
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-secondary" /> Utsav
