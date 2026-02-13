@@ -9,24 +9,27 @@ import {
 } from "@/components/ui/carousel";
 import { OnboardingSlide1, OnboardingSlide2 } from "@/components/onboarding";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 const SLIDE_COUNT = 2;
 const AUTO_SCROLL_INTERVAL = 10000;
 
 export default function SplashScreen() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { t } = useLanguage();
+  const { completed, finishOnboarding } = useOnboarding();
   const [isVisible, setIsVisible] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Redirect logged-in users directly to calendar
+  // Redirect if user is logged in OR onboarding was already completed
   useEffect(() => {
-    if (user) {
+    if (loading) return;
+    if (user || completed) {
       navigate("/calendar", { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, loading, completed, navigate]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 100);
@@ -49,8 +52,9 @@ export default function SplashScreen() {
   }, [api]);
 
   const handleGetStarted = useCallback(() => {
+    finishOnboarding();
     navigate(user ? "/calendar" : "/auth");
-  }, [user, navigate]);
+  }, [user, navigate, finishOnboarding]);
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-between overflow-hidden bg-gradient-sunset py-8">
