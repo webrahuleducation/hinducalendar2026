@@ -39,7 +39,8 @@ export function getMonthDays(month: number, year: number): CalendarDay[] {
 
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
-  return days.map((date) => {
+  // Always pad to 42 cells (6 rows) for consistent height
+  const result = days.map((date) => {
     const dateStr = format(date, "yyyy-MM-dd");
     const events = getEventsForDate(dateStr);
 
@@ -50,6 +51,21 @@ export function getMonthDays(month: number, year: number): CalendarDay[] {
       isCurrentMonth: isSameMonth(date, monthStart),
     };
   });
+
+  // Fill remaining cells to reach 42
+  while (result.length < 42) {
+    const lastDate = result[result.length - 1].date;
+    const nextDate = new Date(lastDate);
+    nextDate.setDate(nextDate.getDate() + 1);
+    result.push({
+      date: nextDate,
+      events: getEventsForDate(format(nextDate, "yyyy-MM-dd")),
+      isToday: isToday(nextDate),
+      isCurrentMonth: false,
+    });
+  }
+
+  return result;
 }
 
 // Generate data for all 12 months of 2026

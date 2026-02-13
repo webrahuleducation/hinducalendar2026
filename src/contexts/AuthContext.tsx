@@ -42,6 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/calendar`,
+        queryParams: {
+          prompt: "select_account",
+        },
       },
     });
     return { error };

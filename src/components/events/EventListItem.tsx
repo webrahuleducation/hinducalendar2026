@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { ChevronRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getLocalizedEventTitle, getLocalizedEventDescription } from "@/data/hinduEvents2026";
 
 interface EventListItemProps {
   event: CalendarEvent;
@@ -14,7 +15,9 @@ interface EventListItemProps {
 
 export function EventListItem({ event, onClick, showDate = true }: EventListItemProps) {
   const eventDate = parseISO(event.date);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const localTitle = getLocalizedEventTitle(event.id, language) || event.title;
+  const localDesc = getLocalizedEventDescription(event.id, language) || event.description;
 
   const getTypeLabel = () => {
     if (event.type === "vrat") return t("calendar.vrat");
@@ -55,11 +58,11 @@ export function EventListItem({ event, onClick, showDate = true }: EventListItem
               )}
             </div>
             <h4 className="font-medium text-foreground truncate">
-              {event.title}
+              {localTitle}
             </h4>
-            {event.description && (
+            {localDesc && (
               <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">
-                {event.description}
+                {localDesc}
               </p>
             )}
           </div>

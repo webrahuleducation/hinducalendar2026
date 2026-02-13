@@ -1,15 +1,44 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { FloatingActionButton } from "@/components/layout/FloatingActionButton";
 import { MonthCalendar, MonthSelector, TodayButton } from "@/components/calendar";
 import { generateYear2026Data, formatDateForUrl } from "@/utils/calendarUtils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useRealtimeEvents } from "@/hooks/useRealtimeEvents";
+import { useAuth } from "@/contexts/AuthContext";
+import { CalendarEvent } from "@/types/calendar";
+import { format } from "date-fns";
 
 export default function CalendarPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [yearData] = useState(() => generateYear2026Data());
+  const { user } = useAuth();
+  const { events: customEvents } = useRealtimeEvents();
+  const [baseYearData] = useState(() => generateYear2026Data());
+
+  // Merge custom events into calendar data
+  const yearData = useMemo(() => {
+    if (customEvents.length === 0) return baseYearData;
+    return baseYearData.map(monthData => ({
+      ...monthData,
+      days: monthData.days.map(day => {
+        const dateStr = format(day.date, "yyyy-MM-dd");
+        const customForDay: CalendarEvent[] = customEvents
+          .filter(e => e.date === dateStr)
+          .map(e => ({
+            id: e.id,
+            title: e.title,
+            date: e.date,
+            type: "custom" as const,
+            description: e.description || undefined,
+          }));
+        return customForDay.length > 0
+          ? { ...day, events: [...day.events, ...customForDay] }
+          : day;
+      }),
+    }));
+  }, [baseYearData, customEvents]);
   const [currentVisibleMonth, setCurrentVisibleMonth] = useState(() => {
     const now = new Date();
     if (now.getFullYear() === 2026) return now.getMonth();

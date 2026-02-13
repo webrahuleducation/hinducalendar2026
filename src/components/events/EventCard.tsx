@@ -23,6 +23,7 @@ import { format, parseISO } from "date-fns";
 import { useShare } from "@/hooks/useShare";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getLocalizedEventTitle, getLocalizedEventDescription } from "@/data/hinduEvents2026";
 
 interface EventCardProps {
   event: CalendarEvent;
@@ -43,7 +44,7 @@ export function EventCard({
   const [reminder, setReminder] = useState(reminderEnabled);
   const { shareEvent, addToCalendar } = useShare();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const handleReminderChange = (enabled: boolean) => {
     setReminder(enabled);
@@ -67,6 +68,8 @@ export function EventCard({
 
   const eventDate = parseISO(event.date);
   const isCustom = event.type === "custom";
+  const localTitle = getLocalizedEventTitle(event.id, language) || event.title;
+  const localDesc = getLocalizedEventDescription(event.id, language) || event.description;
 
   const getTypeLabel = () => {
     if (event.type === "vrat") return t("calendar.vrat");
@@ -103,10 +106,10 @@ export function EventCard({
                   )}
                 </div>
                 <h3 className="font-display font-semibold text-foreground leading-tight">
-                  {event.title}
+                  {localTitle}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                  {event.description}
+                  {localDesc}
                 </p>
               </div>
               <ChevronDown className={cn(
