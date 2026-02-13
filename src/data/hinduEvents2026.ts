@@ -84,6 +84,67 @@ export const hinduEvents2026: CalendarEvent[] = [
   { id: "57", title: "Putrada Ekadashi", date: "2026-12-29", type: "vrat", description: "Ekadashi for progeny blessings" },
 ];
 
+// Hindi translations for event titles and descriptions
+export const hinduEventsHindi: Record<string, { title: string; description: string }> = {
+  "1": { title: "पौष पुत्रदा एकादशी", description: "संतान प्राप्ति के लिए एकादशी व्रत" },
+  "2": { title: "लोहड़ी", description: "फसल और अलाव उत्सव" },
+  "3": { title: "मकर संक्रांति", description: "सूर्य का मकर राशि में प्रवेश, फसल का मौसम" },
+  "4": { title: "पोंगल", description: "तमिल फसल उत्सव" },
+  "5": { title: "षटतिला एकादशी", description: "तिल अर्पण के साथ एकादशी" },
+  "6": { title: "गणतंत्र दिवस", description: "राष्ट्रीय उत्सव" },
+  "7": { title: "वसंत पंचमी", description: "सरस्वती देवी की पूजा" },
+  "8": { title: "जया एकादशी", description: "पापों पर विजय के लिए एकादशी" },
+  "9": { title: "महा शिवरात्रि", description: "भगवान शिव की महारात्रि" },
+  "10": { title: "विजया एकादशी", description: "सफलता और विजय के लिए एकादशी" },
+  "11": { title: "आमलकी एकादशी", description: "आंवला वृक्ष और भगवान विष्णु की पूजा" },
+  "12": { title: "होलिका दहन", description: "होली से पहले अलाव की रात" },
+  "13": { title: "होली", description: "रंगों का त्योहार" },
+  "14": { title: "पापमोचनी एकादशी", description: "पापों से मुक्ति के लिए एकादशी" },
+  "15": { title: "उगादि/गुड़ी पड़वा", description: "हिंदू नव वर्ष" },
+  "16": { title: "चैत्र नवरात्रि प्रारंभ", description: "दुर्गा देवी की नौ रातों की पूजा" },
+  "17": { title: "राम नवमी", description: "भगवान राम का जन्म" },
+  "18": { title: "कामदा एकादशी", description: "इच्छा पूर्ति के लिए एकादशी" },
+  "19": { title: "हनुमान जयंती", description: "भगवान हनुमान का जन्म" },
+  "20": { title: "वरूथिनी एकादशी", description: "सुरक्षा के लिए एकादशी" },
+  "21": { title: "अक्षय तृतीया", description: "नई शुरुआत के लिए शुभ दिन" },
+  "22": { title: "मोहिनी एकादशी", description: "भगवान विष्णु के मोहिनी अवतार की एकादशी" },
+  "23": { title: "बुद्ध पूर्णिमा", description: "भगवान बुद्ध का जन्म" },
+  "24": { title: "अपरा एकादशी", description: "पूर्वजों की कृपा के लिए एकादशी" },
+  "25": { title: "निर्जला एकादशी", description: "निर्जल एकादशी, सबसे शक्तिशाली उपवास" },
+  "26": { title: "योगिनी एकादशी", description: "आध्यात्मिक उन्नति के लिए एकादशी" },
+  "27": { title: "जगन्नाथ रथ यात्रा", description: "भगवान जगन्नाथ का रथ उत्सव" },
+  "28": { title: "देवशयनी एकादशी", description: "भगवान विष्णु की ब्रह्मांडीय निद्रा" },
+  "29": { title: "गुरु पूर्णिमा", description: "आध्यात्मिक गुरुओं का सम्मान" },
+  "30": { title: "कामिका एकादशी", description: "पापों को धोने के लिए एकादशी" },
+  "31": { title: "श्रावण पुत्रदा एकादशी", description: "संतान प्राप्ति की कृपा के लिए एकादशी" },
+  "32": { title: "नाग पंचमी", description: "सर्प देवताओं की पूजा" },
+  "33": { title: "रक्षा बंधन", description: "भाई-बहन के प्रेम का त्योहार" },
+  "34": { title: "अजा एकादशी", description: "मुक्ति के लिए एकादशी" },
+  "35": { title: "जन्माष्टमी", description: "भगवान कृष्ण का जन्म" },
+  "36": { title: "पार्श्व एकादशी", description: "विष्णु करवट बदलने की एकादशी" },
+  "37": { title: "गणेश चतुर्थी", description: "भगवान गणेश का जन्म" },
+  "38": { title: "इंदिरा एकादशी", description: "पूर्वजों की शांति के लिए एकादशी" },
+  "39": { title: "महालय अमावस्या", description: "दुर्गा पूजा उत्सव की शुरुआत" },
+  "40": { title: "नवरात्रि प्रारंभ", description: "दुर्गा देवी की नौ रातें" },
+  "41": { title: "पापांकुशा एकादशी", description: "पापों को नष्ट करने की एकादशी" },
+  "42": { title: "दशहरा/विजयादशमी", description: "बुराई पर अच्छाई की जीत" },
+  "43": { title: "शरद पूर्णिमा", description: "फसल चंद्रमा उत्सव" },
+  "44": { title: "करवा चौथ", description: "पति की लंबी आयु के लिए व्रत" },
+  "45": { title: "रामा एकादशी", description: "भगवान राम को समर्पित एकादशी" },
+  "46": { title: "धनतेरस", description: "धन और समृद्धि की पूजा" },
+  "47": { title: "दीपावली", description: "दीपों का त्योहार" },
+  "48": { title: "गोवर्धन पूजा", description: "कृष्ण द्वारा गोवर्धन पर्वत उठाना" },
+  "49": { title: "भाई दूज", description: "भाई-बहन के बंधन का उत्सव" },
+  "50": { title: "देवउत्थान एकादशी", description: "भगवान विष्णु की निद्रा से जागृति" },
+  "51": { title: "कार्तिक पूर्णिमा", description: "देव दीपावली और पवित्र स्नान" },
+  "52": { title: "उत्पन्ना एकादशी", description: "एकादशी की उत्पत्ति" },
+  "53": { title: "मोक्षदा एकादशी", description: "मोक्ष प्राप्ति के लिए एकादशी" },
+  "54": { title: "गीता जयंती", description: "भगवद्गीता की वर्षगांठ" },
+  "55": { title: "सफला एकादशी", description: "सफलता के लिए एकादशी" },
+  "56": { title: "पौष पूर्णिमा", description: "पौष माह की पूर्णिमा" },
+  "57": { title: "पुत्रदा एकादशी", description: "संतान प्राप्ति की कृपा के लिए एकादशी" },
+};
+
 // Get events for a specific date
 export function getEventsForDate(date: string): CalendarEvent[] {
   return hinduEvents2026.filter(event => event.date === date);
@@ -103,4 +164,20 @@ export function hasEvents(date: string): { hasVrat: boolean; hasUtsav: boolean }
     hasVrat: events.some(e => e.type === 'vrat'),
     hasUtsav: events.some(e => e.type === 'utsav'),
   };
+}
+
+// Get localized event title
+export function getLocalizedEventTitle(eventId: string, language: string): string | undefined {
+  if (language === "hi") {
+    return hinduEventsHindi[eventId]?.title;
+  }
+  return undefined;
+}
+
+// Get localized event description
+export function getLocalizedEventDescription(eventId: string, language: string): string | undefined {
+  if (language === "hi") {
+    return hinduEventsHindi[eventId]?.description;
+  }
+  return undefined;
 }

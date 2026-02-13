@@ -21,6 +21,13 @@ export default function SplashScreen() {
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // Redirect logged-in users directly to calendar
+  useEffect(() => {
+    if (user) {
+      navigate("/calendar", { replace: true });
+    }
+  }, [user, navigate]);
+
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
