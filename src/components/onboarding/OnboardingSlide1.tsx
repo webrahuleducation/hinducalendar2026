@@ -22,7 +22,6 @@ export default function OnboardingSlide1({ isVisible }: OnboardingSlide1Props) {
         <h2 className="font-serif text-xl font-semibold text-gradient-saffron sm:text-2xl">{t("splash.appSubtitle")}</h2>
       </div>
       <CalendarOverview />
-      <p className="max-w-xs text-sm text-muted-foreground">{t("splash.tagline")}</p>
     </div>
   );
 }

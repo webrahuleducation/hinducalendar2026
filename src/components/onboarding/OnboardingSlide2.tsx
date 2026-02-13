@@ -42,6 +42,7 @@ export default function OnboardingSlide2({ isVisible }: OnboardingSlide2Props) {
         <p className="mt-3 text-sm sm:text-base font-bold text-gradient-saffron">
           — Lord Krishna
         </p>
+
       </div>
     </div>
   );
