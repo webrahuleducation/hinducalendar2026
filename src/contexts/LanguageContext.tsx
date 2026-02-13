@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { translations, TranslationKey } from "@/i18n/translations";
 
 type Language = "en" | "hi";
@@ -22,7 +22,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguageState(lang);
     localStorage.setItem("language", lang);
     document.documentElement.lang = lang;
-    document.documentElement.dir = "ltr"; // RTL prep: change to "rtl" for RTL languages
+    // RTL prep: for future RTL languages, set dir accordingly
+    document.documentElement.dir = "ltr";
+  }, []);
+
+  // Sync lang attribute on mount
+  useEffect(() => {
+    document.documentElement.lang = language;
   }, []);
 
   const t = useCallback(
