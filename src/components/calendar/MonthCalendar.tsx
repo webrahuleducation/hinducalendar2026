@@ -1,6 +1,6 @@
+import { useState } from "react";
 import { MonthData } from "@/types/calendar";
 import { CalendarDayCell } from "./CalendarDayCell";
-import { getMonthName } from "@/utils/calendarUtils";
 import { getEventsForMonth } from "@/data/hinduEvents2026";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -11,8 +11,15 @@ interface MonthCalendarProps {
   onDateClick: (date: Date) => void;
 }
 
+const monthTranslationKeys = [
+  "month.january", "month.february", "month.march", "month.april",
+  "month.may", "month.june", "month.july", "month.august",
+  "month.september", "month.october", "month.november", "month.december",
+] as const;
+
 export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
   const { t } = useLanguage();
+  const [expanded, setExpanded] = useState(false);
   const monthEvents = getEventsForMonth(monthData.month, monthData.year);
   const vratCount = monthEvents.filter((e) => e.type === "vrat").length;
   const utsavCount = monthEvents.filter((e) => e.type === "utsav").length;
@@ -22,13 +29,17 @@ export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
     "weekday.thu", "weekday.fri", "weekday.sat",
   ] as const;
 
+  const monthName = t(monthTranslationKeys[monthData.month]);
+  const visibleEvents = expanded ? monthEvents : monthEvents.slice(0, 3);
+  const hiddenCount = monthEvents.length - 3;
+
   return (
     <div className="rounded-xl border bg-card shadow-sm overflow-hidden h-full flex flex-col">
       <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-4 border-b">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-display font-semibold text-foreground">
-              {getMonthName(monthData.month)} {monthData.year}
+              {monthName} {monthData.year}
             </h3>
             <p className="text-xs text-muted-foreground font-hindi">{monthData.hinduName}</p>
           </div>
@@ -66,14 +77,29 @@ export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
         <div className="border-t bg-muted/30 p-3">
           <p className="text-xs text-muted-foreground mb-2">{t("library.upcomingThisMonth")}</p>
           <div className="flex flex-wrap gap-1">
-            {monthEvents.slice(0, 3).map((event) => (
+            {visibleEvents.map((event) => (
               <Badge key={event.id} variant="secondary" className={cn("text-xs",
                 event.type === "vrat" && "bg-primary/15 text-primary hover:bg-primary/25",
                 event.type === "utsav" && "bg-secondary/15 text-secondary hover:bg-secondary/25"
               )}>{event.title}</Badge>
             ))}
-            {monthEvents.length > 3 && (
-              <Badge variant="outline" className="text-xs">+{monthEvents.length - 3} more</Badge>
+            {hiddenCount > 0 && !expanded && (
+              <Badge
+                variant="outline"
+                className="text-xs cursor-pointer hover:bg-accent"
+                onClick={() => setExpanded(true)}
+              >
+                +{hiddenCount} {t("library.showMore")}
+              </Badge>
+            )}
+            {expanded && hiddenCount > 0 && (
+              <Badge
+                variant="outline"
+                className="text-xs cursor-pointer hover:bg-accent"
+                onClick={() => setExpanded(false)}
+              >
+                {t("library.showLess")}
+              </Badge>
             )}
           </div>
         </div>

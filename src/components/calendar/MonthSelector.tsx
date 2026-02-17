@@ -1,4 +1,4 @@
-import { getMonthName } from "@/utils/calendarUtils";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Select,
   SelectContent,
@@ -7,15 +7,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const monthTranslationKeys = [
+  "month.january", "month.february", "month.march", "month.april",
+  "month.may", "month.june", "month.july", "month.august",
+  "month.september", "month.october", "month.november", "month.december",
+] as const;
+
 interface MonthSelectorProps {
   currentMonth: number;
   onMonthSelect: (month: number) => void;
 }
 
 export function MonthSelector({ currentMonth, onMonthSelect }: MonthSelectorProps) {
+  const { t } = useLanguage();
   const months = Array.from({ length: 12 }, (_, i) => ({
     value: i,
-    label: getMonthName(i),
+    label: t(monthTranslationKeys[i]),
   }));
 
   return (

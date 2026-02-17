@@ -7,9 +7,9 @@ interface CalendarDayCellProps {
 }
 
 export function CalendarDayCell({ day, onClick }: CalendarDayCellProps) {
+  const hasCustom = day.events.some((e) => e.type === "custom");
   const hasVrat = day.events.some((e) => e.type === "vrat");
   const hasUtsav = day.events.some((e) => e.type === "utsav");
-  const hasCustom = day.events.some((e) => e.type === "custom");
   const hasEvents = day.events.length > 0;
 
   return (
@@ -47,9 +47,9 @@ export function CalendarDayCell({ day, onClick }: CalendarDayCellProps) {
         <div
           className={cn(
             "absolute inset-0.5 rounded-lg -z-0 opacity-20",
-            hasCustom && !hasVrat && !hasUtsav && "bg-custom",
-            hasUtsav && "bg-secondary",
-            hasVrat && !hasUtsav && "bg-primary"
+            hasCustom && "bg-custom",
+            hasUtsav && !hasCustom && "bg-secondary",
+            hasVrat && !hasUtsav && !hasCustom && "bg-primary"
           )}
         />
       )}

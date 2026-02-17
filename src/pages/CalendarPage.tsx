@@ -50,7 +50,7 @@ export default function CalendarPage() {
   const isScrollingToMonth = useRef(false);
 
   const handleDateClick = useCallback((date: Date) => {
-    navigate(`/day/${formatDateForUrl(date)}`);
+    navigate(`/day/${formatDateForUrl(date)}`, { replace: false });
   }, [navigate]);
 
   const handleAddEvent = useCallback(() => {
