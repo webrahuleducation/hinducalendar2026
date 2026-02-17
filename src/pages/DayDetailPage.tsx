@@ -8,6 +8,7 @@ import { format, addDays, subDays } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus, Calendar, Sunrise } from "lucide-react";
 import { FloatingActionButton } from "@/components/layout/FloatingActionButton";
 import { useRealtimeReminders } from "@/hooks/useRealtimeReminders";
+import { useRealtimeEvents } from "@/hooks/useRealtimeEvents";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -16,6 +17,7 @@ export default function DayDetailPage() {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
   const { isReminderEnabled, toggleReminder } = useRealtimeReminders();
+  const { events: customEvents } = useRealtimeEvents();
   const { scheduleEventReminder, cancelEventReminder } = useNotifications();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -26,11 +28,22 @@ export default function DayDetailPage() {
   const isDateValid = !isNaN(currentDate.getTime());
   const events = isDateValid ? getEventsForDate(dateStr) : [];
 
+  // Custom events for this date
+  const customForDay = customEvents
+    .filter(e => e.date === dateStr)
+    .map(e => ({
+      id: e.id,
+      title: e.title,
+      date: e.date,
+      type: "custom" as const,
+      description: e.description || undefined,
+    }));
+
   const vratEvents = events.filter(e => e.type === "vrat");
   const utsavEvents = events.filter(e => e.type === "utsav");
 
-  const handlePrevDay = () => navigate(`/day/${formatDateForUrl(subDays(currentDate, 1))}`);
-  const handleNextDay = () => navigate(`/day/${formatDateForUrl(addDays(currentDate, 1))}`);
+  const handlePrevDay = () => navigate(`/day/${formatDateForUrl(subDays(currentDate, 1))}`, { replace: true });
+  const handleNextDay = () => navigate(`/day/${formatDateForUrl(addDays(currentDate, 1))}`, { replace: true });
   const handleAddEvent = () => navigate(`/event/new?date=${dateStr}`);
 
   const handleReminderToggle = async (eventId: string, enabled: boolean, eventTitle: string) => {
@@ -52,6 +65,7 @@ export default function DayDetailPage() {
   const dayOfWeek = isDateValid ? format(currentDate, "EEEE") : "";
   const formattedDate = isDateValid ? format(currentDate, "d MMMM yyyy") : "";
   const isToday = isDateValid && format(new Date(), "yyyy-MM-dd") === dateStr;
+  const hasAnyEvents = events.length > 0 || customForDay.length > 0;
 
   return (
     <AppLayout title={isDateValid ? format(currentDate, "d MMM yyyy") : "Invalid Date"} showBack>
@@ -76,7 +90,7 @@ export default function DayDetailPage() {
       </div>
 
       <div className="p-4 space-y-6 pb-24">
-        {events.length === 0 ? (
+        {!hasAnyEvents ? (
           <div className="text-center py-12">
             <Calendar className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
             <h3 className="font-display font-semibold text-lg text-foreground mb-2">{t("day.noEvents")}</h3>
@@ -111,6 +125,20 @@ export default function DayDetailPage() {
                     <EventCard key={event.id} event={event}
                       onReminderToggle={(id, enabled) => handleReminderToggle(id, enabled, event.title)}
                       reminderEnabled={isReminderEnabled(event.id)} defaultExpanded={vratEvents.length === 0 && index === 0} />
+                  ))}
+                </div>
+              </section>
+            )}
+            {customForDay.length > 0 && (
+              <section>
+                <h2 className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-3">
+                  <span className="h-2.5 w-2.5 rounded-full bg-custom" />{t("day.customSection")}
+                </h2>
+                <div className="space-y-3">
+                  {customForDay.map((event, index) => (
+                    <EventCard key={event.id} event={event}
+                      onReminderToggle={(id, enabled) => handleReminderToggle(id, enabled, event.title)}
+                      reminderEnabled={isReminderEnabled(event.id)} defaultExpanded={vratEvents.length === 0 && utsavEvents.length === 0 && index === 0} />
                   ))}
                 </div>
               </section>
