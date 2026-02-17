@@ -9,7 +9,7 @@ export default function TermsOfServicePage() {
           <section>
             <h2 className="mb-3 text-xl font-semibold text-foreground">What This App Is</h2>
             <p>
-              Hindu Calendar 2026 is a free web application that provides a calendar of Hindu festivals, vrats, and utsavs for the year 2026. It also lets you create personal events, set reminders, and customize your experience. By using this app, you agree to the terms outlined below. They're straightforward — we've kept the legalese to a minimum.
+              Hindu Calendar 2026 is a free web application that provides a calendar of Hindu festivals, vrats, and utsavs for the year 2026. It also lets you create personal events, set reminders, and customize your experience. By using this app, you agree to the terms outlined below. They're straightforward - we've kept the legalese to a minimum.
             </p>
           </section>
 
@@ -17,10 +17,10 @@ export default function TermsOfServicePage() {
             <h2 className="mb-3 text-xl font-semibold text-foreground">Using the App</h2>
             <p className="mb-3">You're welcome to use the app as long as you:</p>
             <ul className="list-disc space-y-2 pl-6">
-              <li>Use it for its intended purpose — viewing calendar events and managing personal reminders.</li>
+              <li>Use it for its intended purpose - viewing calendar events and managing personal reminders.</li>
               <li>Don't attempt to disrupt, hack, or interfere with the app or its infrastructure.</li>
               <li>Don't use automated tools to scrape content or overload our servers.</li>
-              <li>Keep your Google account credentials secure — we're not responsible for unauthorized access caused by compromised passwords.</li>
+              <li>Keep your Google account credentials secure - we're not responsible for unauthorized access caused by compromised passwords.</li>
             </ul>
           </section>
 
@@ -76,7 +76,7 @@ export default function TermsOfServicePage() {
           <section>
             <h2 className="mb-3 text-xl font-semibold text-foreground">Termination</h2>
             <p>
-              You can stop using the app at any time — simply sign out and don't come back. We reserve the right to suspend or terminate accounts that violate these terms or engage in abusive behavior, though we honestly don't expect that to be necessary.
+              You can stop using the app at any time - simply sign out and don't come back. We reserve the right to suspend or terminate accounts that violate these terms or engage in abusive behavior, though we honestly don't expect that to be necessary.
             </p>
           </section>
 
@@ -84,8 +84,8 @@ export default function TermsOfServicePage() {
             <h2 className="mb-3 text-xl font-semibold text-foreground">Contact Us</h2>
             <p>
               Questions or concerns about these terms? Drop us a line at{" "}
-              <a href="mailto:support@hinducalendar2026.lovable.app" className="text-primary underline underline-offset-2">
-                support@hinducalendar2026.lovable.app
+              <a href="mailto:webdevelopers@rahuleducation.com" className="text-primary underline underline-offset-2">
+                webdevelopers@rahuleducation.com
               </a>. We're happy to help.
             </p>
           </section>

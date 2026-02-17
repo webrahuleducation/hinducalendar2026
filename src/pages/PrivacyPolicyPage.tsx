@@ -43,7 +43,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="mb-3 text-xl font-semibold text-foreground">Cookies and Local Storage</h2>
             <p>
-              We use your browser's local storage to remember things like your login session, language preference, and theme choice. These are small pieces of data stored on your own device — they never leave your browser. We do not use tracking cookies or any advertising cookies. There are no pop-ups asking you to "accept cookies" because we simply don't use them for tracking.
+              We use your browser's local storage to remember things like your login session, language preference, and theme choice. These are small pieces of data stored on your own device - they never leave your browser. We do not use tracking cookies or any advertising cookies. There are no pop-ups asking you to "accept cookies" because we simply don't use them for tracking.
             </p>
           </section>
 
@@ -98,8 +98,8 @@ export default function PrivacyPolicyPage() {
             <h2 className="mb-3 text-xl font-semibold text-foreground">Contact Us</h2>
             <p>
               If you have any questions about this privacy policy or how we handle your data, feel free to reach out to us at{" "}
-              <a href="mailto:support@hinducalendar2026.lovable.app" className="text-primary underline underline-offset-2">
-                support@hinducalendar2026.lovable.app
+              <a href="mailto:webdevelopers@rahuleducation.com" className="text-primary underline underline-offset-2">
+                webdevelopers@rahuleducation.com
               </a>.
             </p>
           </section>
