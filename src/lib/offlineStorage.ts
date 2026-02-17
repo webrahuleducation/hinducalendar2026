@@ -83,7 +83,7 @@ export async function getDB(): Promise<IDBPDatabase<HinduCalendarDB>> {
 export async function cacheEvents(events: CalendarEvent[]): Promise<void> {
   const db = await getDB();
   const tx = db.transaction("events", "readwrite");
-  
+
   await Promise.all([
     ...events.map((event) => tx.store.put(event)),
     tx.done,

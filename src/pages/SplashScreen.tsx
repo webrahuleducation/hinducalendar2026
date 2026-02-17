@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -71,11 +71,20 @@ export default function SplashScreen() {
           ))}
         </div>
       </div>
-      <div className={cn("relative z-10 flex flex-col items-center gap-4 px-6 pt-6 pb-4 transition-all duration-500",
+      <div className={cn("relative z-10 flex flex-col items-center gap-4 px-6 pt-6 pb-2 transition-all duration-500",
         isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95")}>
         <Button onClick={handleGetStarted} size="lg" className="gap-2 rounded-full px-8 shadow-spiritual">
           {t("splash.getStarted")} <ArrowRight className="h-4 w-4" />
         </Button>
+        <div className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground/70 mt-1">
+          <Link to="/privacy" className="hover:text-primary transition-colors hover:underline underline-offset-4">
+            {t("auth.privacyPolicy")}
+          </Link>
+          <span className="text-muted-foreground/30">|</span>
+          <Link to="/terms" className="hover:text-primary transition-colors hover:underline underline-offset-4">
+            {t("auth.termsOfService")}
+          </Link>
+        </div>
       </div>
     </div>
   );
