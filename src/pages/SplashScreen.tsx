@@ -23,13 +23,6 @@ export default function SplashScreen() {
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Redirect if user is logged in OR onboarding was already completed
-  useEffect(() => {
-    if (loading) return;
-    if (user || completed) {
-      navigate("/calendar", { replace: true });
-    }
-  }, [user, loading, completed, navigate]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 100);
