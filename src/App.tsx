@@ -23,6 +23,8 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const CreateEventPage = lazy(() => import("./pages/CreateEventPage"));
 const EventDetailPage = lazy(() => import("./pages/EventDetailPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const TermsOfServicePage = lazy(() => import("./pages/TermsOfServicePage"));
 
 // Page loading fallback
 function PageLoader() {
@@ -78,6 +80,8 @@ const App = () => (
                         <EventDetailPage />
                       </ProtectedRoute>
                     } />
+                    <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                    <Route path="/terms" element={<TermsOfServicePage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
