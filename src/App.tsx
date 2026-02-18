@@ -10,6 +10,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { TimeFormatProvider } from "@/contexts/TimeFormatContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { OfflineIndicator } from "@/components/pwa";
+import { FCMInitializer } from "@/components/pwa/FCMInitializer";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 // Lazy-loaded pages for better performance
@@ -56,6 +57,7 @@ const App = () => (
               <Toaster />
               <Sonner />
               <OfflineIndicator />
+              <FCMInitializer />
               <BrowserRouter>
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
