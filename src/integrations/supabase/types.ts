@@ -63,6 +63,8 @@ export type Database = {
           event_id: string
           id: string
           reminder_enabled: boolean | null
+          reminder_send_at: string | null
+          reminder_sent: boolean | null
           user_id: string
         }
         Insert: {
@@ -71,6 +73,8 @@ export type Database = {
           event_id: string
           id?: string
           reminder_enabled?: boolean | null
+          reminder_send_at?: string | null
+          reminder_sent?: boolean | null
           user_id: string
         }
         Update: {
@@ -79,6 +83,8 @@ export type Database = {
           event_id?: string
           id?: string
           reminder_enabled?: boolean | null
+          reminder_send_at?: string | null
+          reminder_sent?: boolean | null
           user_id?: string
         }
         Relationships: []
