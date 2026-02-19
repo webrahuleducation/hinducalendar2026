@@ -13,11 +13,16 @@ interface FCMMessage {
   data?: Record<string, string>;
 }
 
+function base64UrlEncode(data: Uint8Array | string): string {
+  const str = typeof data === "string" ? data : String.fromCharCode(...data);
+  return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
 // Get OAuth2 access token from service account
 async function getAccessToken(serviceAccount: any): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
-  const header = btoa(JSON.stringify({ alg: "RS256", typ: "JWT" }));
-  const payload = btoa(
+  const header = base64UrlEncode(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const claimSet = base64UrlEncode(
     JSON.stringify({
       iss: serviceAccount.client_email,
       scope: "https://www.googleapis.com/auth/firebase.messaging",
@@ -27,38 +32,37 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
     })
   );
 
-  const unsignedToken = `${header}.${payload}`;
+  const unsignedToken = `${header}.${claimSet}`;
 
-  // Import the private key for signing
-  const pemContents = serviceAccount.private_key
+  // Handle both actual newlines and literal \n in the PEM key
+  const pem = serviceAccount.private_key.replace(/\\n/g, "\n");
+  const pemBase64 = pem
     .replace(/-----BEGIN PRIVATE KEY-----/g, "")
     .replace(/-----END PRIVATE KEY-----/g, "")
-    .replace(/\n/g, "");
-
-  const binaryKey = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
+    .replace(/\s/g, "");
+  
+  // Decode the base64 PEM content
+  const pemBinary = Uint8Array.from(
+    atob(pemBase64),
+    (c: string) => c.charCodeAt(0)
+  );
 
   const cryptoKey = await crypto.subtle.importKey(
     "pkcs8",
-    binaryKey,
+    pemBinary,
     { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
     false,
     ["sign"]
   );
 
-  const signature = await crypto.subtle.sign(
+  const signatureBuffer = await crypto.subtle.sign(
     "RSASSA-PKCS1-v1_5",
     cryptoKey,
     new TextEncoder().encode(unsignedToken)
   );
 
-  const base64Signature = btoa(
-    String.fromCharCode(...new Uint8Array(signature))
-  )
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-
-  const jwt = `${header}.${payload}.${base64Signature}`;
+  const signature = base64UrlEncode(new Uint8Array(signatureBuffer));
+  const jwt = `${header}.${claimSet}.${signature}`;
 
   // Exchange JWT for access token
   const tokenResponse = await fetch(serviceAccount.token_uri, {
@@ -130,7 +134,17 @@ Deno.serve(async (req) => {
       throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY not configured");
     }
 
-    const serviceAccount = JSON.parse(serviceAccountJson);
+    let serviceAccount;
+    try {
+      serviceAccount = JSON.parse(serviceAccountJson);
+    } catch (e) {
+      throw new Error(`Failed to parse service account JSON: ${e.message}`);
+    }
+
+    if (!serviceAccount.private_key || !serviceAccount.client_email) {
+      throw new Error("Service account missing required fields (private_key, client_email)");
+    }
+
     const accessToken = await getAccessToken(serviceAccount);
 
     const { tokens, title, body, data } = await req.json();
@@ -155,13 +169,12 @@ Deno.serve(async (req) => {
 
       results.push({ token: token.substring(0, 20) + "...", ...result });
 
-      // Track invalid tokens for cleanup
       if (!result.success && result.error?.includes("UNREGISTERED")) {
         invalidTokens.push(token);
       }
     }
 
-    // Clean up invalid tokens from the database
+    // Clean up invalid tokens
     if (invalidTokens.length > 0) {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
