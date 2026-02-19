@@ -6,7 +6,34 @@ export interface EventReminder {
   event_id: string;
   event_date: string;
   reminder_enabled: boolean;
+  reminder_sent: boolean;
+  reminder_send_at: string | null;
   created_at: string;
+}
+
+function calculateReminderSendAt(eventDate: string, reminderTime: string = "1_day_before"): string {
+  const date = new Date(eventDate + "T09:00:00");
+  switch (reminderTime) {
+    case "same_day":
+      date.setHours(6, 0, 0, 0);
+      break;
+    case "1_day_before":
+      date.setDate(date.getDate() - 1);
+      date.setHours(18, 0, 0, 0);
+      break;
+    case "2_days_before":
+      date.setDate(date.getDate() - 2);
+      date.setHours(18, 0, 0, 0);
+      break;
+    case "1_week_before":
+      date.setDate(date.getDate() - 7);
+      date.setHours(9, 0, 0, 0);
+      break;
+    default:
+      date.setDate(date.getDate() - 1);
+      date.setHours(18, 0, 0, 0);
+  }
+  return date.toISOString();
 }
 
 export interface CreateReminderInput {
@@ -40,6 +67,7 @@ export const reminderService = {
   },
 
   async createReminder(userId: string, reminder: CreateReminderInput): Promise<EventReminder> {
+    const reminderSendAt = calculateReminderSendAt(reminder.event_date);
     const { data, error } = await supabase
       .from("event_reminders")
       .insert({
@@ -47,7 +75,9 @@ export const reminderService = {
         event_id: reminder.event_id,
         event_date: reminder.event_date,
         reminder_enabled: reminder.reminder_enabled ?? true,
-      })
+        reminder_sent: false,
+        reminder_send_at: reminderSendAt,
+      } as any)
       .select()
       .single();
 
