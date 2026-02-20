@@ -12,6 +12,7 @@ import { User, Bell, Moon, Globe, LogOut, Calendar, AlertCircle, CheckCircle, Cl
 import { useAuth } from "@/contexts/AuthContext";
 import { profileService, Profile } from "@/services/profileService";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useFCMToken } from "@/hooks/useFCMToken";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -25,6 +26,7 @@ export default function ProfilePage() {
   const { language, setLanguage, t } = useLanguage();
   const { timeFormat, setTimeFormat } = useTimeFormat();
   const { permissionStatus, isSupported, requestPermission, scheduledNotifications } = useNotifications();
+  const { requestAndSaveToken } = useFCMToken();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [notifications, setNotifications] = useState(true);
 
@@ -57,12 +59,21 @@ export default function ProfilePage() {
   };
 
   const handleNotificationsToggle = async (enabled: boolean) => {
-    if (enabled && permissionStatus !== "granted") {
-      const granted = await requestPermission();
-      if (!granted) {
-        toast({ title: t("profile.notifBlocked"), variant: "destructive" });
+    if (enabled) {
+      if (permissionStatus !== "granted") {
+        const granted = await requestPermission();
+        if (!granted) {
+          toast({ title: t("profile.notifBlocked"), variant: "destructive" });
+          return;
+        }
+      }
+      // Register FCM token after permission is granted (user gesture)
+      const saved = await requestAndSaveToken();
+      if (!saved) {
+        toast({ title: "Failed to register push token", variant: "destructive" });
         return;
       }
+      toast({ title: "Push notifications enabled!", description: "You'll receive reminders for events." });
     }
     setNotifications(enabled);
     if (user) {
