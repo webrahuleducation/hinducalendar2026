@@ -14,7 +14,6 @@ export function useFCMToken() {
       if (!user) return;
 
       try {
-        // Upsert: update if token exists for user, else insert
         const { error } = await supabase
           .from("push_tokens")
           .upsert(
@@ -28,7 +27,6 @@ export function useFCMToken() {
           );
 
         if (error) {
-          // If unique constraint fails, try update
           if (error.code === "23505") {
             await supabase
               .from("push_tokens")
@@ -61,24 +59,44 @@ export function useFCMToken() {
     }
   }, [user]);
 
-  const initializeFCM = useCallback(async () => {
-    if (!user || tokenSaved.current) return;
+  // Request permission + get token (must be called from user gesture)
+  const requestAndSaveToken = useCallback(async () => {
+    if (!user) {
+      console.warn("Cannot save FCM token: user not authenticated");
+      return false;
+    }
 
-    const token = await requestFCMToken();
-    if (token) {
-      await saveTokenToSupabase(token);
-      tokenSaved.current = true;
+    try {
+      const token = await requestFCMToken();
+      if (token) {
+        await saveTokenToSupabase(token);
+        tokenSaved.current = true;
+        console.log("FCM token requested and saved successfully");
+        return true;
+      } else {
+        console.warn("FCM token was null — permission denied or unsupported");
+        return false;
+      }
+    } catch (err) {
+      console.error("Failed to request/save FCM token:", err);
+      return false;
     }
   }, [user, saveTokenToSupabase]);
 
-  // Initialize FCM when user logs in
+  // Only auto-register if permission is already granted (no prompt)
   useEffect(() => {
-    if (user) {
-      initializeFCM();
-    } else {
+    if (!user || tokenSaved.current) return;
+
+    if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+      requestAndSaveToken();
+    }
+  }, [user, requestAndSaveToken]);
+
+  useEffect(() => {
+    if (!user) {
       tokenSaved.current = false;
     }
-  }, [user, initializeFCM]);
+  }, [user]);
 
   // Handle foreground messages
   useEffect(() => {
@@ -92,7 +110,7 @@ export function useFCMToken() {
   }, [toast]);
 
   return {
-    initializeFCM,
+    requestAndSaveToken,
     removeTokenFromSupabase,
   };
 }
