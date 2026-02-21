@@ -1,0 +1,2 @@
+ALTER TABLE public.push_tokens DROP CONSTRAINT push_tokens_platform_check;
+ALTER TABLE public.push_tokens ADD CONSTRAINT push_tokens_platform_check CHECK (platform = ANY (ARRAY['ios'::text, 'android'::text, 'web'::text]));
