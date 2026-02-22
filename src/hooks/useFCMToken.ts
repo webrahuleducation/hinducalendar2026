@@ -98,14 +98,35 @@ export function useFCMToken() {
     }
   }, [user]);
 
-  // Handle foreground messages
+  // Handle foreground messages — show both system notification and in-app toast
   useEffect(() => {
     onForegroundMessage((payload) => {
       console.log("Foreground message received:", payload);
-      toast({
-        title: payload.notification?.title || "Notification",
-        description: payload.notification?.body || "",
-      });
+      const title = payload.notification?.title || "Notification";
+      const body = payload.notification?.body || "";
+
+      // Show in-app toast
+      toast({ title, description: body });
+
+      // Also show system notification if permission is granted
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        try {
+          new Notification(title, {
+            body,
+            icon: "/icons/icon-192x192.png",
+            badge: "/icons/icon-120x120.png",
+          });
+        } catch (e) {
+          // Some browsers don't support Notification constructor in this context
+          navigator.serviceWorker?.ready.then((reg) => {
+            reg.showNotification(title, {
+              body,
+              icon: "/icons/icon-192x192.png",
+              badge: "/icons/icon-120x120.png",
+            });
+          });
+        }
+      }
     });
   }, [toast]);
 
