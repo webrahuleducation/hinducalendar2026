@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.process-reminders]
 verify_jwt = false
+
+[functions.cleanup-tokens]
+verify_jwt = false
+
+[functions.send-email-reminder]
+verify_jwt = false
