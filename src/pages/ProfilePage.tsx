@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { User, Bell, Moon, Globe, LogOut, Calendar, AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { User, Bell, Moon, Globe, LogOut, Calendar, AlertCircle, CheckCircle, Clock, Send } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { profileService, Profile } from "@/services/profileService";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormat } from "@/contexts/TimeFormatContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ export default function ProfilePage() {
   const { requestAndSaveToken } = useFCMToken();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [notifications, setNotifications] = useState(true);
+  const [sendingTest, setSendingTest] = useState(false);
 
   useEffect(() => {
     if (user) loadProfile();
@@ -67,7 +69,6 @@ export default function ProfilePage() {
           return;
         }
       }
-      // Register FCM token after permission is granted (user gesture)
       const saved = await requestAndSaveToken();
       if (!saved) {
         toast({ title: "Failed to register push token", variant: "destructive" });
@@ -82,6 +83,57 @@ export default function ProfilePage() {
       } catch (error) {
         console.error("Error updating notifications:", error);
       }
+    }
+  };
+
+  const handleSendTestNotification = async () => {
+    if (!user) {
+      toast({ title: "Please sign in first", variant: "destructive" });
+      return;
+    }
+    setSendingTest(true);
+    try {
+      // Get user's push tokens
+      const { data: tokens } = await supabase
+        .from("push_tokens")
+        .select("token")
+        .eq("user_id", user.id);
+
+      if (!tokens || tokens.length === 0) {
+        toast({ title: "No push token found", description: "Enable notifications first", variant: "destructive" });
+        setSendingTest(false);
+        return;
+      }
+
+      const tokenList = tokens.map((t) => t.token);
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/send-notification`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+          body: JSON.stringify({
+            tokens: tokenList,
+            title: "🙏 Test Notification",
+            body: `Jai Shree Ram! This is a test notification for ${profile?.display_name || user.email}. 🕉️`,
+            data: { url: "/profile" },
+          }),
+        }
+      );
+
+      if (res.ok) {
+        toast({ title: "✅ Test notification sent!", description: "Check your notifications" });
+      } else {
+        const err = await res.text();
+        console.error("Test notification failed:", err);
+        toast({ title: "Failed to send", description: err, variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Test notification error:", err);
+      toast({ title: "Error sending notification", variant: "destructive" });
+    } finally {
+      setSendingTest(false);
     }
   };
 
@@ -149,6 +201,19 @@ export default function ProfilePage() {
                 </Button>
               )}
             </div>
+            {/* Send Test Notification Button */}
+            {user && permissionStatus === "granted" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSendTestNotification}
+                disabled={sendingTest}
+                className="w-full gap-2"
+              >
+                <Send className="h-4 w-4" />
+                {sendingTest ? "Sending..." : "Send Test Notification"}
+              </Button>
+            )}
           </CardContent>
         </Card>
 
@@ -158,7 +223,6 @@ export default function ProfilePage() {
             <CardTitle className="text-base">{t("profile.preferences")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Dark Mode with animation */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="relative">
@@ -174,7 +238,6 @@ export default function ProfilePage() {
               />
             </div>
 
-            {/* Language */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Globe className="h-5 w-5 text-muted-foreground" />
@@ -191,7 +254,6 @@ export default function ProfilePage() {
               </Select>
             </div>
 
-            {/* Time Format */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Clock className="h-5 w-5 text-muted-foreground" />
