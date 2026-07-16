@@ -201,7 +201,19 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      claim_due_custom_reminders: {
+        Args: { _limit?: number }
+        Returns: {
+          date: string
+          description: string
+          id: string
+          reminder_time: string
+          time: string
+          title: string
+          user_id: string
+        }[]
+      }
+      cleanup_expired_custom_events: { Args: never; Returns: number }
     }
     Enums: {
       [_ in never]: never
