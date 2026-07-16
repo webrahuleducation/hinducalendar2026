@@ -157,7 +157,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      ready_custom_reminders: {
+        Row: {
+          date: string | null
+          description: string | null
+          event_at: string | null
+          id: string | null
+          reminder_enabled: boolean | null
+          reminder_sent: boolean | null
+          reminder_time: string | null
+          time: string | null
+          title: string | null
+          trigger_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          date?: string | null
+          description?: string | null
+          event_at?: never
+          id?: string | null
+          reminder_enabled?: boolean | null
+          reminder_sent?: boolean | null
+          reminder_time?: string | null
+          time?: string | null
+          title?: string | null
+          trigger_at?: never
+          user_id?: string | null
+        }
+        Update: {
+          date?: string | null
+          description?: string | null
+          event_at?: never
+          id?: string | null
+          reminder_enabled?: boolean | null
+          reminder_sent?: boolean | null
+          reminder_time?: string | null
+          time?: string | null
+          title?: string | null
+          trigger_at?: never
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
