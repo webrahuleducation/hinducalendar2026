@@ -6,7 +6,11 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface DueReminder {
+const BATCH_SIZE = 100;
+const CONCURRENCY = 20;
+const APPILIX_TIMEOUT_MS = 10_000;
+
+interface ClaimedReminder {
   id: string;
   user_id: string;
   title: string;
@@ -14,8 +18,15 @@ interface DueReminder {
   date: string;
   time: string | null;
   reminder_time: string;
-  event_at: string;
-  trigger_at: string;
+}
+
+function sanitize(text: string, max = 240): string {
+  // Strip control chars, collapse whitespace, trim, cap length.
+  return text
+    .replace(/[\u0000-\u001F\u007F]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, max);
 }
 
 function formatEventTimeIST(dateStr: string, timeStr: string | null): string {
@@ -45,16 +56,39 @@ async function sendAppilixNotification(
   form.set("api_key", apiKey);
   form.set("notification_title", title);
   form.set("notification_body", body);
-  // Target this specific user only (Appilix delivers to devices tagged with this identity)
   form.set("user_identity", userIdentity);
 
-  const res = await fetch("https://appilix.com/api/push-notification", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: form.toString(),
-  });
-  const text = await res.text();
-  return { ok: res.ok, status: res.status, response: text };
+  const ctrl = new AbortController();
+  const to = setTimeout(() => ctrl.abort(), APPILIX_TIMEOUT_MS);
+  try {
+    const res = await fetch("https://appilix.com/api/push-notification", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "Accept": "application/json",
+      },
+      body: form.toString(),
+      signal: ctrl.signal,
+    });
+    const text = await res.text();
+    return { ok: res.ok, status: res.status, response: text };
+  } finally {
+    clearTimeout(to);
+  }
+}
+
+async function processInChunks<T, R>(
+  items: T[],
+  size: number,
+  worker: (item: T) => Promise<R>,
+): Promise<PromiseSettledResult<R>[]> {
+  const out: PromiseSettledResult<R>[] = [];
+  for (let i = 0; i < items.length; i += size) {
+    const slice = items.slice(i, i + size);
+    const settled = await Promise.allSettled(slice.map(worker));
+    out.push(...settled);
+  }
+  return out;
 }
 
 Deno.serve(async (req) => {
@@ -73,70 +107,92 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    const nowIso = new Date().toISOString();
+    let totalClaimed = 0;
+    let totalSent = 0;
+    let totalFailed = 0;
+    const failures: Array<Record<string, unknown>> = [];
+    const rollbackIds: string[] = [];
 
-    // Fetch reminders whose calculated trigger_at is due
-    const { data: due, error } = await supabase
-      .from("ready_custom_reminders")
-      .select("*")
-      .lte("trigger_at", nowIso);
-
-    if (error) throw new Error(`View query failed: ${error.message}`);
-
-    if (!due || due.length === 0) {
-      return new Response(
-        JSON.stringify({ message: "No due reminders", processed: 0 }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    console.log(`Processing ${due.length} due Appilix reminders`);
-
-    const results: Array<Record<string, unknown>> = [];
-    let sent = 0;
-    let failed = 0;
-
-    for (const r of due as DueReminder[]) {
-      const title = `🙏 Reminder: ${r.title}`;
-      const whenStr = formatEventTimeIST(r.date, r.time);
-      const bodyText = r.description
-        ? `${whenStr} — ${r.description}`
-        : `Your event is scheduled for ${whenStr}.`;
-
-      const push = await sendAppilixNotification(
-        appKey,
-        apiKey,
-        title,
-        bodyText,
-        r.user_id,
+    // Drain the queue in batches of BATCH_SIZE. Cap the whole invocation at
+    // ~1500 rows so a single 10-minute cron tick can never balloon; the next
+    // tick will pick up the remainder.
+    for (let round = 0; round < 15; round++) {
+      const { data: claimed, error: claimErr } = await supabase.rpc(
+        "claim_due_custom_reminders",
+        { _limit: BATCH_SIZE },
       );
 
-      if (push.ok) {
-        sent++;
-        // Mark as sent + bump updated_at so we never re-send
-        const { error: updErr } = await supabase
-          .from("custom_events")
-          .update({ reminder_sent: true, updated_at: new Date().toISOString() })
-          .eq("id", r.id);
+      if (claimErr) throw new Error(`claim RPC failed: ${claimErr.message}`);
+      const batch = (claimed ?? []) as ClaimedReminder[];
+      if (batch.length === 0) break;
 
-        if (updErr) {
-          console.error(`Failed to mark ${r.id} as sent:`, updErr.message);
-          results.push({ id: r.id, sent: true, updated: false, error: updErr.message });
-        } else {
-          results.push({ id: r.id, sent: true, updated: true });
+      totalClaimed += batch.length;
+      console.log(`Round ${round + 1}: claimed ${batch.length} reminders`);
+
+      const settled = await processInChunks(batch, CONCURRENCY, async (r) => {
+        try {
+          const title = sanitize(`🙏 Reminder: ${r.title}`, 120);
+          const whenStr = formatEventTimeIST(r.date, r.time);
+          const bodyText = sanitize(
+            r.description
+              ? `${whenStr} — ${r.description}`
+              : `Your event is scheduled for ${whenStr}.`,
+            500,
+          );
+          const push = await sendAppilixNotification(
+            appKey,
+            apiKey,
+            title,
+            bodyText,
+            r.user_id,
+          );
+          if (!push.ok) {
+            throw new Error(`Appilix ${push.status}: ${push.response.slice(0, 200)}`);
+          }
+          return { id: r.id, ok: true as const };
+        } catch (e) {
+          return { id: r.id, ok: false as const, error: (e as Error).message };
         }
-      } else {
-        failed++;
-        console.error(
-          `Appilix push failed for reminder ${r.id} (status ${push.status}):`,
-          push.response,
-        );
-        results.push({ id: r.id, sent: false, status: push.status, response: push.response });
+      });
+
+      for (const s of settled) {
+        if (s.status === "fulfilled" && s.value.ok) {
+          totalSent++;
+        } else {
+          totalFailed++;
+          const info = s.status === "fulfilled"
+            ? s.value
+            : { id: "unknown", ok: false, error: String(s.reason) };
+          failures.push(info as Record<string, unknown>);
+          if ("id" in info && info.id && info.id !== "unknown") {
+            rollbackIds.push(info.id as string);
+          }
+        }
       }
+
+      // Roll back claim for failed sends so the next tick can retry them.
+      if (rollbackIds.length > 0) {
+        const toRollback = rollbackIds.splice(0, rollbackIds.length);
+        const { error: rbErr } = await supabase
+          .from("custom_events")
+          .update({ reminder_sent: false, updated_at: new Date().toISOString() })
+          .in("id", toRollback);
+        if (rbErr) {
+          console.error("Rollback failed:", rbErr.message);
+        }
+      }
+
+      // Stop early if the batch wasn't full — queue is drained.
+      if (batch.length < BATCH_SIZE) break;
     }
 
     return new Response(
-      JSON.stringify({ processed: due.length, sent, failed, results }),
+      JSON.stringify({
+        claimed: totalClaimed,
+        sent: totalSent,
+        failed: totalFailed,
+        failures: failures.slice(0, 25),
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
