@@ -1,0 +1,1 @@
+ALTER VIEW public.ready_custom_reminders SET (security_invoker = true);
