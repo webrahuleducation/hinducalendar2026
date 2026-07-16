@@ -11,7 +11,7 @@ export default function OnboardingSlide1({ isVisible }: OnboardingSlide1Props) {
 
   return (
     <div className={cn(
-      "flex flex-col items-center gap-4 px-6 text-center transition-all duration-700",
+      "flex flex-col items-center justify-center gap-4 px-6 text-center min-h-[70vh] transition-all duration-700",
       isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
     )}>
       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
