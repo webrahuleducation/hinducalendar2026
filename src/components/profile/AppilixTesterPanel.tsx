@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Bell, CheckCircle2, XCircle, Rocket } from "lucide-react";
+import { Bell, CheckCircle2, XCircle, Rocket, RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { syncAppilixIdentity } from "@/hooks/useAppilixIdentity";
 
 type Status =
   | { kind: "idle" }
@@ -19,6 +20,31 @@ export function AppilixTesterPanel() {
   const [title, setTitle] = useState("🙏 Test from Profile");
   const [body, setBody] = useState("Jai Shree Ram! On-spot Appilix push test.");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [syncStatus, setSyncStatus] = useState<Status>({ kind: "idle" });
+
+  const handleForceSync = () => {
+    if (!user) {
+      setSyncStatus({ kind: "error", message: "You must be signed in first." });
+      return;
+    }
+    if (typeof window === "undefined" || !window.appilix || typeof window.appilix.setUserIdentity !== "function") {
+      setSyncStatus({
+        kind: "error",
+        message:
+          "Bridge not found! Make sure you are testing inside the compiled Android APK package, not a desktop web browser.",
+      });
+      return;
+    }
+    try {
+      window.appilix.setUserIdentity(user.id);
+      syncAppilixIdentity(user.id);
+      setSyncStatus({ kind: "success", message: "Device synced to Appilix successfully!" });
+      window.setTimeout(() => setSyncStatus({ kind: "idle" }), 4000);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setSyncStatus({ kind: "error", message: `Sync failed: ${message}` });
+    }
+  };
 
   const handleSend = async () => {
     if (!user) {
@@ -82,6 +108,29 @@ export function AppilixTesterPanel() {
             maxLength={500}
           />
         </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleForceSync}
+          className="w-full gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          🔄 Force Sync Device Identity
+        </Button>
+
+        {syncStatus.kind === "success" && (
+          <div className="flex items-start gap-2 rounded-md border border-green-500/40 bg-green-500/10 p-3 text-sm text-green-700 dark:text-green-400">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{syncStatus.message}</span>
+          </div>
+        )}
+        {syncStatus.kind === "error" && (
+          <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+            <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span className="break-words">{syncStatus.message}</span>
+          </div>
+        )}
 
         <Button
           onClick={handleSend}
