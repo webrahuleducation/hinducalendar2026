@@ -10,27 +10,55 @@ declare global {
   }
 }
 
-function syncIdentity(userId: string | null) {
+const MAX_ATTEMPTS = 15;
+const POLL_INTERVAL_MS = 1000;
+
+/**
+ * Resiliently set the Appilix user identity. The Appilix JS bridge
+ * (`window.appilix`) is injected by the native Android wrapper after
+ * the WebView finishes loading, which may happen AFTER React mounts.
+ * We poll every 1s (up to 15 attempts) until the bridge appears.
+ */
+export function syncAppilixIdentity(userId: string): () => void {
+  if (typeof window === "undefined") return () => {};
+
+  const tryOnce = (): boolean => {
+    const bridge = window.appilix;
+    if (bridge && typeof bridge.setUserIdentity === "function") {
+      bridge.setUserIdentity(userId);
+      console.log("[Appilix] ✅ setUserIdentity ->", userId);
+      return true;
+    }
+    return false;
+  };
+
+  if (tryOnce()) return () => {};
+
+  let attempts = 0;
+  const intervalId = window.setInterval(() => {
+    attempts += 1;
+    if (tryOnce()) {
+      window.clearInterval(intervalId);
+      return;
+    }
+    if (attempts >= MAX_ATTEMPTS) {
+      window.clearInterval(intervalId);
+      console.warn(
+        `[Appilix] ⚠️ Bridge not available after ${MAX_ATTEMPTS} attempts. ` +
+          "This is expected in desktop browsers; inside the Android APK the bridge should be injected."
+      );
+    }
+  }, POLL_INTERVAL_MS);
+
+  return () => window.clearInterval(intervalId);
+}
+
+function removeIdentity() {
   if (typeof window === "undefined") return;
   const bridge = window.appilix;
-  if (typeof bridge === "undefined") {
-    console.log("[Appilix] Bridge not available (likely running in browser, not Appilix app)");
-    return;
-  }
-  if (userId) {
-    if (typeof bridge.setUserIdentity === "function") {
-      console.log("[Appilix] setUserIdentity ->", userId);
-      bridge.setUserIdentity(userId);
-    } else {
-      console.warn("[Appilix] setUserIdentity is not a function on bridge");
-    }
-  } else {
-    if (typeof bridge.removeUserIdentity === "function") {
-      console.log("[Appilix] removeUserIdentity()");
-      bridge.removeUserIdentity();
-    } else {
-      console.warn("[Appilix] removeUserIdentity is not a function on bridge");
-    }
+  if (bridge && typeof bridge.removeUserIdentity === "function") {
+    bridge.removeUserIdentity();
+    console.log("[Appilix] removeUserIdentity()");
   }
 }
 
@@ -41,11 +69,14 @@ function syncIdentity(userId: string | null) {
  */
 export function useAppilixIdentity() {
   useEffect(() => {
+    let cancelPoll: () => void = () => {};
+
     // Prime on mount from existing session.
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user?.id) {
         console.log("[Appilix] Existing session detected on mount");
-        syncIdentity(session.user.id);
+        cancelPoll();
+        cancelPoll = syncAppilixIdentity(session.user.id);
       }
     });
 
@@ -53,15 +84,20 @@ export function useAppilixIdentity() {
       (event, session) => {
         console.log("[Appilix] auth event:", event);
         if (event === "SIGNED_OUT") {
-          syncIdentity(null);
+          cancelPoll();
+          removeIdentity();
           return;
         }
         if (session?.user?.id) {
-          syncIdentity(session.user.id);
+          cancelPoll();
+          cancelPoll = syncAppilixIdentity(session.user.id);
         }
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelPoll();
+      subscription.unsubscribe();
+    };
   }, []);
 }
