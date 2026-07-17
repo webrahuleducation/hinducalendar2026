@@ -40,7 +40,7 @@ export default function OnboardingSlide2({ isVisible }: OnboardingSlide2Props) {
           "Do everything you have to do, but not with greed, not with ego, not with lust, not with envy, but with love, compassion, humility, and devotion."
         </p>
         <p className="mt-3 text-sm sm:text-base font-bold text-gradient-saffron">
-          — Lord Krishna
+          - Lord Krishna
         </p>
 
       </div>

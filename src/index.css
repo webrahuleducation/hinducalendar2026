@@ -179,3 +179,21 @@
     box-shadow: 0 4px 20px -4px hsl(30 100% 60% / 0.15);
   }
 }
+
+/* Hide browser-extension injected AI assistant elements/dot */
+use-chat-gpt-ai,
+use-chat-gpt-ai-content-menu,
+[id*="USE_CHAT_GPT_AI"],
+[class*="use-chat-gpt-ai"],
+.use-chat-gpt-ai--MuiStack-root,
+.use-chat-gpt-ai-context-menu-11cata5 {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+
