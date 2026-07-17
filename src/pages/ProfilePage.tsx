@@ -18,6 +18,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormat } from "@/contexts/TimeFormatContext";
 import { supabase } from "@/integrations/supabase/client";
+import { AppilixTesterPanel } from "@/components/profile/AppilixTesterPanel";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -288,6 +289,9 @@ export default function ProfilePage() {
             </Badge>
           </CardContent>
         </Card>
+
+        {/* Appilix On-Spot Push Notification Tester */}
+        <AppilixTesterPanel />
 
         {/* Sign In/Out */}
         {user ? (
