@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppilixIdentity } from "@/hooks/useAppilixIdentity";
 
 interface AuthContextType {
   user: User | null;
@@ -16,6 +17,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Mirror the logged-in user's ID into the Appilix JS bridge so
+  // push notifications can be targeted by Supabase user_id.
+  useAppilixIdentity();
 
   useEffect(() => {
     // Set up auth state listener FIRST
