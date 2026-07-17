@@ -6,11 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Bell, CheckCircle2, XCircle, Rocket } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-
-// NOTE: these are placeholders. For production, proxy this call through an
-// edge function so the api_key never ships in the client bundle.
-const APPILIX_APP_KEY = import.meta.env.VITE_APPILIX_APP_KEY as string | undefined;
-const APPILIX_API_KEY = import.meta.env.VITE_APPILIX_API_KEY as string | undefined;
+import { supabase } from "@/integrations/supabase/client";
 
 type Status =
   | { kind: "idle" }
@@ -29,43 +25,22 @@ export function AppilixTesterPanel() {
       setStatus({ kind: "error", message: "You must be signed in to send a test notification." });
       return;
     }
-    if (!APPILIX_APP_KEY || !APPILIX_API_KEY) {
-      setStatus({
-        kind: "error",
-        message:
-          "Appilix keys missing. Set VITE_APPILIX_APP_KEY and VITE_APPILIX_API_KEY in your env.",
-      });
-      return;
-    }
-
     setStatus({ kind: "sending" });
-
-    const payload = new URLSearchParams({
-      app_key: APPILIX_APP_KEY,
-      api_key: APPILIX_API_KEY,
-      notification_title: title,
-      notification_body: body,
-      user_id: user.id,
-    }).toString();
-
     try {
-      const res = await fetch("https://appilix.com/api/push-notification", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-          Accept: "application/json",
-        },
-        body: payload,
+      const { data, error } = await supabase.functions.invoke("appilix-test-push", {
+        body: { title, body },
       });
-
-      const text = await res.text();
-      console.log("[Appilix Tester] response", res.status, text);
-
-      if (!res.ok) {
-        setStatus({ kind: "error", message: `HTTP ${res.status}: ${text.slice(0, 200)}` });
+      if (error) {
+        console.error("[Appilix Tester] invoke error", error);
+        setStatus({ kind: "error", message: error.message });
         return;
       }
-      setStatus({ kind: "success", message: "API payload accepted! Check device notification bar." });
+      console.log("[Appilix Tester] response", data);
+      if (data?.ok) {
+        setStatus({ kind: "success", message: "API payload accepted! Check device notification bar." });
+      } else {
+        setStatus({ kind: "error", message: `Upstream ${data?.status ?? "?"}: ${String(data?.response ?? data?.error ?? "unknown").slice(0, 200)}` });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error("[Appilix Tester] fetch failed", err);
