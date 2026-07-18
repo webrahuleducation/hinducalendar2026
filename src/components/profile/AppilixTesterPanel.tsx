@@ -27,7 +27,7 @@ export function AppilixTesterPanel() {
       setSyncStatus({ kind: "error", message: "You must be signed in first." });
       return;
     }
-    if (typeof window === "undefined" || !window.appilix || typeof window.appilix.setUserIdentity !== "function") {
+    if (typeof window === "undefined" || !window.appilix || typeof window.appilix.postMessage !== "function") {
       setSyncStatus({
         kind: "error",
         message:
@@ -36,9 +36,17 @@ export function AppilixTesterPanel() {
       return;
     }
     try {
-      window.appilix.setUserIdentity(user.id);
+      window.appilix.postMessage(
+        JSON.stringify({
+          type: "firebase_record_user_identity",
+          props: { user_identity: user.id },
+        }),
+      );
       syncAppilixIdentity(user.id);
-      setSyncStatus({ kind: "success", message: "Device synced to Appilix successfully!" });
+      setSyncStatus({
+        kind: "success",
+        message: "Native identity registration payload dispatched to Appilix wrapper!",
+      });
       window.setTimeout(() => setSyncStatus({ kind: "idle" }), 4000);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
