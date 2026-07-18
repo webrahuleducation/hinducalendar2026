@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 declare global {
   interface Window {
     appilix?: {
+      postMessage?: (message: string) => void;
       setUserIdentity?: (identity: string) => void;
       removeUserIdentity?: () => void;
     };
@@ -24,9 +25,14 @@ export function syncAppilixIdentity(userId: string): () => void {
 
   const tryOnce = (): boolean => {
     const bridge = window.appilix;
-    if (bridge && typeof bridge.setUserIdentity === "function") {
-      bridge.setUserIdentity(userId);
-      console.log("[Appilix] ✅ setUserIdentity ->", userId);
+    if (bridge && typeof bridge.postMessage === "function") {
+      bridge.postMessage(
+        JSON.stringify({
+          type: "firebase_record_user_identity",
+          props: { user_identity: userId },
+        }),
+      );
+      console.log("[Appilix] ✅ postMessage(firebase_record_user_identity) ->", userId);
       return true;
     }
     return false;
@@ -56,9 +62,14 @@ export function syncAppilixIdentity(userId: string): () => void {
 function removeIdentity() {
   if (typeof window === "undefined") return;
   const bridge = window.appilix;
-  if (bridge && typeof bridge.removeUserIdentity === "function") {
-    bridge.removeUserIdentity();
-    console.log("[Appilix] removeUserIdentity()");
+  if (bridge && typeof bridge.postMessage === "function") {
+    bridge.postMessage(
+      JSON.stringify({
+        type: "firebase_record_user_identity",
+        props: { user_identity: "" },
+      }),
+    );
+    console.log("[Appilix] postMessage(clear identity)");
   }
 }
 
