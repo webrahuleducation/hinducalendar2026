@@ -16,7 +16,6 @@ interface EventRow {
   description: string | null;
   date: string;
   time: string | null;
-  start_at: string; // ISO
 }
 
 function sanitize(text: string, max = 500): string {
@@ -73,52 +72,37 @@ async function processInChunks<T, R>(
   return out;
 }
 
+function istTargetStrings(offsetMinutes: number): { date: string; time: string } {
+  // "Now in IST" = UTC now + 5:30. Add offset minutes for the target moment.
+  const nowUtcMs = Date.now();
+  const targetIstMs = nowUtcMs + (5 * 60 + 30) * 60_000 + offsetMinutes * 60_000;
+  const d = new Date(targetIstMs);
+  const yyyy = d.getUTCFullYear();
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  const hh = String(d.getUTCHours()).padStart(2, "0");
+  const mi = String(d.getUTCMinutes()).padStart(2, "0");
+  return { date: `${yyyy}-${mm}-${dd}`, time: `${hh}:${mi}` };
+}
+
 async function fetchWindow(
   supabase: ReturnType<typeof createClient>,
-  minMinutes: number,
-  maxMinutes: number,
+  offsetMinutes: number,
   flagCol: "notified_30m" | "notified_10m",
 ): Promise<EventRow[]> {
-  const now = new Date();
-  const from = new Date(now.getTime() + minMinutes * 60_000).toISOString();
-  const to = new Date(now.getTime() + maxMinutes * 60_000).toISOString();
-
-  // Use a raw SQL RPC via `.rpc` isn't available; use PostgREST filter on computed via view isn't set up.
-  // Instead fetch a candidate set by date/time using an inline SQL via `.from(...).select(...)` with computed filters is limited.
-  // Simpler: use the `custom_events` table and filter with expression via `.filter` isn't possible for expressions.
-  // We use the RPC-less approach: call an inline SQL query through the REST endpoint using `.rpc` requires a defined function.
-  // Fallback: use the built-in `postgrest` with `date` bound to the day range in IST, then filter in JS.
-
-  // Compute IST date bounds for coverage (yesterday..tomorrow to cover TZ edges).
-  const nowIST = new Date(now.getTime() + 5.5 * 3600_000);
-  const y = new Date(nowIST); y.setUTCDate(y.getUTCDate() - 1);
-  const t = new Date(nowIST); t.setUTCDate(t.getUTCDate() + 1);
-  const iso = (d: Date) => d.toISOString().slice(0, 10);
-
+  const target = istTargetStrings(offsetMinutes);
   const { data, error } = await supabase
     .from("custom_events")
     .select("id, user_id, title, description, date, time")
-    .gte("date", iso(y))
-    .lte("date", iso(t))
-    .not("time", "is", null)
+    .eq("date", target.date)
+    .like("time", `${target.time}%`)
     .eq(flagCol, false);
 
   if (error) throw new Error(`fetch ${flagCol} failed: ${error.message}`);
-
-  const rows = (data ?? []) as Array<Omit<EventRow, "start_at">>;
-  const matched: EventRow[] = [];
-  for (const r of rows) {
-    if (!r.time) continue;
-    // Interpret date+time as IST -> UTC
-    const [hh, mm] = r.time.split(":").map(Number);
-    const [yy, mo, dd] = r.date.split("-").map(Number);
-    const istMs = Date.UTC(yy, mo - 1, dd, hh, mm, 0) - 5.5 * 3600_000;
-    const startAt = new Date(istMs);
-    if (startAt >= new Date(from) && startAt <= new Date(to)) {
-      matched.push({ ...r, start_at: startAt.toISOString() });
-    }
-  }
-  return matched;
+  console.log(
+    `[${flagCol}] target IST ${target.date} ${target.time} -> ${(data ?? []).length} rows`,
+  );
+  return (data ?? []) as EventRow[];
 }
 
 Deno.serve(async (req) => {
@@ -141,18 +125,17 @@ Deno.serve(async (req) => {
     const windows: Array<{
       label: string;
       flag: "notified_30m" | "notified_10m";
-      min: number;
-      max: number;
+      offset: number;
       minutesLabel: number;
     }> = [
-      { label: "30m", flag: "notified_30m", min: 29, max: 31, minutesLabel: 30 },
-      { label: "10m", flag: "notified_10m", min: 9, max: 11, minutesLabel: 10 },
+      { label: "30m", flag: "notified_30m", offset: 30, minutesLabel: 30 },
+      { label: "10m", flag: "notified_10m", offset: 10, minutesLabel: 10 },
     ];
 
     const summary: Record<string, unknown> = {};
 
     for (const w of windows) {
-      const events = await fetchWindow(supabase, w.min, w.max, w.flag);
+      const events = await fetchWindow(supabase, w.offset, w.flag);
       let sent = 0;
       let failed = 0;
       const successIds: string[] = [];
