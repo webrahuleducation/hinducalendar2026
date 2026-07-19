@@ -74,15 +74,9 @@ async function processInChunks<T, R>(
 
 function istTargetStrings(offsetMinutes: number): { date: string; time: string } {
   // "Now in IST" = UTC now + 5:30. Add offset minutes for the target moment.
-  const nowUtcMs = Date.now();
-  const targetIstMs = nowUtcMs + (5 * 60 + 30) * 60_000 + offsetMinutes * 60_000;
-  const d = new Date(targetIstMs);
-  const yyyy = d.getUTCFullYear();
-  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(d.getUTCDate()).padStart(2, "0");
-  const hh = String(d.getUTCHours()).padStart(2, "0");
-  const mi = String(d.getUTCMinutes()).padStart(2, "0");
-  return { date: `${yyyy}-${mm}-${dd}`, time: `${hh}:${mi}` };
+  const targetIstMs = Date.now() + (5 * 60 + 30) * 60_000 + offsetMinutes * 60_000;
+  const iso = new Date(targetIstMs).toISOString();
+  return { date: iso.slice(0, 10), time: iso.slice(11, 16) };
 }
 
 async function fetchWindow(
@@ -100,7 +94,7 @@ async function fetchWindow(
 
   if (error) throw new Error(`fetch ${flagCol} failed: ${error.message}`);
   console.log(
-    `[${flagCol}] target IST ${target.date} ${target.time} -> ${(data ?? []).length} rows`,
+    `[${flagCol}] Target: ${target.date} ${target.time} -> Found ${data?.length || 0} rows`,
   );
   return (data ?? []) as EventRow[];
 }
