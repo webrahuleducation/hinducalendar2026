@@ -72,22 +72,25 @@ async function processInChunks<T, R>(
   return out;
 }
 
-function istTargetStrings(offsetMinutes: number): { date: string; time: string } {
-  // 1. Calculate the exact target time in milliseconds by applying the +5:30 offset and the window offset
-  const targetIstMs = Date.now() + (5 * 60 + 30) * 60_000 + offsetMinutes * 60_000;
-  const d = new Date(targetIstMs);
+function istTargetStrings(offsetMinutes: number): { date: string; timeStart: string; timeEnd: string } {
+  const baseTimeMs = Date.now() + (5 * 60 + 30) * 60_000 + offsetMinutes * 60_000;
 
-  // 2. Extract UTC components explicitly since targetIstMs already includes the IST shift
-  const yyyy = d.getUTCFullYear();
-  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(d.getUTCDate()).padStart(2, "0");
-  const hh = String(d.getUTCHours()).padStart(2, "0");
-  const mi = String(d.getUTCMinutes()).padStart(2, "0");
+  // Create a 3-minute safety window around the target time to absorb cron delays.
+  const lowerBound = new Date(baseTimeMs - 60_000);
+  const upperBound = new Date(baseTimeMs + 60_000);
 
-  // Return 'HH:MM:00' to align perfectly with PostgreSQL 'time without time zone' datatype inputs
+  const formatDate = (d: Date) => {
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+  };
+
+  const formatTime = (d: Date) => {
+    return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}:00`;
+  };
+
   return {
-    date: `${yyyy}-${mm}-${dd}`,
-    time: `${hh}:${mi}:00`,
+    date: formatDate(new Date(baseTimeMs)),
+    timeStart: formatTime(lowerBound),
+    timeEnd: formatTime(upperBound),
   };
 }
 
@@ -101,12 +104,13 @@ async function fetchWindow(
     .from("custom_events")
     .select("id, user_id, title, description, date, time")
     .eq("date", target.date)
-    .eq("time", target.time)
+    .gte("time", target.timeStart)
+    .lte("time", target.timeEnd)
     .eq(flagCol, false);
 
   if (error) throw new Error(`fetch ${flagCol} failed: ${error.message}`);
   console.log(
-    `[${flagCol}] Targeting local IST: ${target.date} ${target.time}`,
+    `[${flagCol}] Targeting local IST: ${target.date} ${target.timeStart}-${target.timeEnd}`,
   );
   return (data ?? []) as EventRow[];
 }
