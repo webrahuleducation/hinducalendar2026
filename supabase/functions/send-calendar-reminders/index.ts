@@ -73,24 +73,21 @@ async function processInChunks<T, R>(
 }
 
 function istTargetStrings(offsetMinutes: number): { date: string; timeStart: string; timeEnd: string } {
+  // 1. Calculate the exact target time in IST
   const baseTimeMs = Date.now() + (5 * 60 + 30) * 60_000 + offsetMinutes * 60_000;
 
-  // Create a 3-minute safety window around the target time to absorb cron delays.
-  const lowerBound = new Date(baseTimeMs - 60_000);
-  const upperBound = new Date(baseTimeMs + 60_000);
-
-  const formatDate = (d: Date) => {
-    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
-  };
-
-  const formatTime = (d: Date) => {
-    return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}:00`;
-  };
+  // 2. Remove the overlapping range. Simply look at the exact target minute up to 59 seconds.
+  const d = new Date(baseTimeMs);
+  const yyyy = d.getUTCFullYear();
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  const hh = String(d.getUTCHours()).padStart(2, "0");
+  const mi = String(d.getUTCMinutes()).padStart(2, "0");
 
   return {
-    date: formatDate(new Date(baseTimeMs)),
-    timeStart: formatTime(lowerBound),
-    timeEnd: formatTime(upperBound),
+    date: `${yyyy}-${mm}-${dd}`,
+    timeStart: `${hh}:${mi}:00`,
+    timeEnd: `${hh}:${mi}:59`,
   };
 }
 
@@ -109,9 +106,7 @@ async function fetchWindow(
     .eq(flagCol, false);
 
   if (error) throw new Error(`fetch ${flagCol} failed: ${error.message}`);
-  console.log(
-    `[${flagCol}] Targeting local IST: ${target.date} ${target.timeStart}-${target.timeEnd}`,
-  );
+  console.log(`[${flagCol}] Scanning exact target window: ${target.date} ${target.timeStart} to ${target.timeEnd}`);
   return (data ?? []) as EventRow[];
 }
 
