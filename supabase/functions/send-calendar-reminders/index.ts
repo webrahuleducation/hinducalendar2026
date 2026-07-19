@@ -84,9 +84,10 @@ function istTargetStrings(offsetMinutes: number): { date: string; time: string }
   const hh = String(d.getUTCHours()).padStart(2, "0");
   const mi = String(d.getUTCMinutes()).padStart(2, "0");
 
+  // Return 'HH:MM:00' to align perfectly with PostgreSQL 'time without time zone' datatype inputs
   return {
     date: `${yyyy}-${mm}-${dd}`,
-    time: `${hh}:${mi}`,
+    time: `${hh}:${mi}:00`,
   };
 }
 
@@ -100,12 +101,12 @@ async function fetchWindow(
     .from("custom_events")
     .select("id, user_id, title, description, date, time")
     .eq("date", target.date)
-    .like("time", `${target.time}%`)
+    .eq("time", target.time)
     .eq(flagCol, false);
 
   if (error) throw new Error(`fetch ${flagCol} failed: ${error.message}`);
   console.log(
-    `[${flagCol}] Target: ${target.date} ${target.time} -> Found ${data?.length || 0} rows`,
+    `[${flagCol}] Targeting local IST: ${target.date} ${target.time}`,
   );
   return (data ?? []) as EventRow[];
 }
