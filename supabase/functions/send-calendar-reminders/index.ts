@@ -73,10 +73,21 @@ async function processInChunks<T, R>(
 }
 
 function istTargetStrings(offsetMinutes: number): { date: string; time: string } {
-  // "Now in IST" = UTC now + 5:30. Add offset minutes for the target moment.
+  // 1. Calculate the exact target time in milliseconds by applying the +5:30 offset and the window offset
   const targetIstMs = Date.now() + (5 * 60 + 30) * 60_000 + offsetMinutes * 60_000;
-  const iso = new Date(targetIstMs).toISOString();
-  return { date: iso.slice(0, 10), time: iso.slice(11, 16) };
+  const d = new Date(targetIstMs);
+
+  // 2. Extract UTC components explicitly since targetIstMs already includes the IST shift
+  const yyyy = d.getUTCFullYear();
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  const hh = String(d.getUTCHours()).padStart(2, "0");
+  const mi = String(d.getUTCMinutes()).padStart(2, "0");
+
+  return {
+    date: `${yyyy}-${mm}-${dd}`,
+    time: `${hh}:${mi}`,
+  };
 }
 
 async function fetchWindow(
