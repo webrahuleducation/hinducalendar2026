@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { eventService, CustomEvent } from "@/services/eventService";
 import { hinduEvents2026 } from "@/data/hinduEvents2026";
 import { format, parseISO, isAfter, isBefore, addDays } from "date-fns";
-import { Calendar, Star, Clock, ChevronRight, Plus, Sparkles, Bell } from "lucide-react";
+import { Calendar, Star, Clock, ChevronRight, Plus, Sparkles, Bell, History, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -21,6 +21,7 @@ export default function EventsPage() {
   const [customEvents, setCustomEvents] = useState<CustomEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("upcoming");
+  const [showPast, setShowPast] = useState(false);
 
   useEffect(() => {
     if (user) loadCustomEvents();
@@ -46,6 +47,9 @@ export default function EventsPage() {
     return isAfter(eventDate, today) && isBefore(eventDate, thirtyDaysLater);
   }).slice(0, 10);
   const upcomingCustom = customEvents.filter(event => event.date >= todayStr);
+  const pastCustom = customEvents
+    .filter(event => event.date < todayStr)
+    .sort((a, b) => b.date.localeCompare(a.date));
   const allUpcoming = [
     ...upcomingPredefined.map(e => ({ ...e, isCustom: false })),
     ...upcomingCustom.map(e => ({
@@ -97,16 +101,51 @@ export default function EventsPage() {
                 <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
                 <p className="text-muted-foreground mt-4">{t("common.loading")}</p>
               </div>
-            ) : customEvents.length === 0 ? (
+            ) : upcomingCustom.length === 0 && pastCustom.length === 0 ? (
               <EmptyState icon={<Plus className="h-12 w-12" />} title={t("events.noCustom")} description={t("events.noCustomDesc")}
                 action={<Button onClick={handleAddEvent} className="gap-2"><Plus className="h-4 w-4" />{t("common.add")}</Button>} />
             ) : (
-              customEvents.map(event => (
-                <EventListCard key={event.id} title={event.title} date={event.date}
-                  type="custom" description={event.description || ""} isCustom={true}
-                  category={event.category} hasReminder={event.reminder_enabled}
-                  onClick={() => navigate(`/event/${event.id}`)} />
-              ))
+              <>
+                {upcomingCustom.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-muted-foreground">{t("events.noUpcoming")}</p>
+                  </div>
+                ) : (
+                  upcomingCustom.map(event => (
+                    <EventListCard key={event.id} title={event.title} date={event.date}
+                      type="custom" description={event.description || ""} isCustom={true}
+                      category={event.category} hasReminder={event.reminder_enabled}
+                      onClick={() => navigate(`/event/${event.id}`)} />
+                  ))
+                )}
+
+                {pastCustom.length > 0 && (
+                  <div className="pt-8 pb-2">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-1 h-px bg-border" />
+                      <button
+                        onClick={() => setShowPast(v => !v)}
+                        className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <History className="h-3.5 w-3.5" />
+                        Past Reminders ({pastCustom.length})
+                        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showPast && "rotate-180")} />
+                      </button>
+                      <div className="flex-1 h-px bg-border" />
+                    </div>
+                    {showPast && (
+                      <div className="space-y-3 opacity-75">
+                        {pastCustom.map(event => (
+                          <EventListCard key={event.id} title={event.title} date={event.date}
+                            type="custom" description={event.description || ""} isCustom={true}
+                            category={event.category} hasReminder={event.reminder_enabled}
+                            onClick={() => navigate(`/event/${event.id}`)} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
 
