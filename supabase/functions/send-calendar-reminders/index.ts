@@ -94,7 +94,7 @@ function istTargetStrings(offsetMinutes: number): { date: string; timeStart: str
 async function fetchWindow(
   supabase: ReturnType<typeof createClient>,
   offsetMinutes: number,
-  flagCol: "notified_30m" | "notified_10m",
+  flagCol: "notified_30m" | "notified_10m" | "notified_1m",
 ): Promise<EventRow[]> {
   const target = istTargetStrings(offsetMinutes);
   const { data, error } = await supabase
@@ -129,12 +129,13 @@ Deno.serve(async (req) => {
 
     const windows: Array<{
       label: string;
-      flag: "notified_30m" | "notified_10m";
+      flag: "notified_30m" | "notified_10m" | "notified_1m";
       offset: number;
       minutesLabel: number;
     }> = [
       { label: "30m", flag: "notified_30m", offset: 30, minutesLabel: 30 },
       { label: "10m", flag: "notified_10m", offset: 10, minutesLabel: 10 },
+      { label: "1m", flag: "notified_1m", offset: 1, minutesLabel: 1 },
     ];
 
     const summary: Record<string, unknown> = {};
@@ -147,7 +148,13 @@ Deno.serve(async (req) => {
       const failures: Array<Record<string, unknown>> = [];
 
       const settled = await processInChunks(events, CONCURRENCY, async (e) => {
-        const title = sanitize(`⏰ Reminder: '${e.title}' starts in ${w.minutesLabel} minutes!`, 120);
+        const isOneMin = w.label === "1m";
+        const title = sanitize(
+          isOneMin
+            ? `🚨 Hurry! '${e.title}' starts in 1 minute!`
+            : `⏰ Reminder: '${e.title}' starts in ${w.minutesLabel} minutes!`,
+          120,
+        );
         const body = sanitize(
           e.description
             ? `${e.description}`
