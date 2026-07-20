@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { User, Bell, Moon, Globe, LogOut, Calendar, AlertCircle, CheckCircle, Clock, Send } from "lucide-react";
+import { User, Bell, Moon, Globe, LogOut, LogIn, AlertCircle, CheckCircle, Clock, Send } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { profileService, Profile } from "@/services/profileService";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -18,7 +18,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormat } from "@/contexts/TimeFormatContext";
 import { supabase } from "@/integrations/supabase/client";
-import { AppilixTesterPanel } from "@/components/profile/AppilixTesterPanel";
+
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -116,15 +116,15 @@ export default function ProfilePage() {
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
           body: JSON.stringify({
             tokens: tokenList,
-            title: "🙏 Test Notification",
-            body: `Jai Shree Ram! This is a test notification for ${profile?.display_name || user.email}. 🕉️`,
+              title: "🙏 Welcome to Hindu Calendar 2026",
+              body: `Jai Shree Ram, ${profile?.display_name || user.email}! Your notifications are working perfectly. 🕉️`,
             data: { url: "/profile" },
           }),
         }
       );
 
       if (res.ok) {
-        toast({ title: "✅ Test notification sent!", description: "Check your notifications" });
+        toast({ title: "✅ Welcome notification sent!", description: "Check your notifications" });
       } else {
         const err = await res.text();
         console.error("Test notification failed:", err);
@@ -205,14 +205,12 @@ export default function ProfilePage() {
             {/* Send Test Notification Button */}
             {user && permissionStatus === "granted" && (
               <Button
-                variant="outline"
-                size="sm"
                 onClick={handleSendTestNotification}
                 disabled={sendingTest}
                 className="w-full gap-2"
               >
                 <Send className="h-4 w-4" />
-                {sendingTest ? "Sending..." : "Send Test Notification"}
+                {sendingTest ? "Sending..." : "Send Welcome Notification"}
               </Button>
             )}
           </CardContent>
@@ -273,33 +271,24 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Calendar Integration */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
-              {t("profile.calendarIntegration")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-3">{t("profile.calendarDesc")}</p>
-            <Badge variant="secondary" className="gap-1">
-              <CheckCircle className="h-3 w-3" />
-              {t("profile.icalSupported")}
-            </Badge>
-          </CardContent>
-        </Card>
-
-        {/* Appilix On-Spot Push Notification Tester */}
-        <AppilixTesterPanel />
-
         {/* Sign In/Out */}
         {user ? (
-          <Button variant="outline" className="w-full gap-2" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4" />{t("profile.signOut")}
+          <Button
+            variant="destructive"
+            size="lg"
+            className="w-full gap-2 font-semibold"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-5 w-5" />
+            {t("profile.signOut")}
           </Button>
         ) : (
-          <Button className="w-full gap-2" onClick={() => navigate("/auth")}>
+          <Button
+            size="lg"
+            className="w-full gap-2 font-semibold"
+            onClick={() => navigate("/auth")}
+          >
+            <LogIn className="h-5 w-5" />
             {t("profile.signIn")}
           </Button>
         )}
