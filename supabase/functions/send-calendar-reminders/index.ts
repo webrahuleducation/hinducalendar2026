@@ -148,7 +148,13 @@ Deno.serve(async (req) => {
       const failures: Array<Record<string, unknown>> = [];
 
       const settled = await processInChunks(events, CONCURRENCY, async (e) => {
-        const title = sanitize(`⏰ Reminder: '${e.title}' starts in ${w.minutesLabel} minutes!`, 120);
+        const isOneMin = w.label === "1m";
+        const title = sanitize(
+          isOneMin
+            ? `🚨 Hurry! '${e.title}' starts in 1 minute!`
+            : `⏰ Reminder: '${e.title}' starts in ${w.minutesLabel} minutes!`,
+          120,
+        );
         const body = sanitize(
           e.description
             ? `${e.description}`
