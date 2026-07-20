@@ -129,12 +129,13 @@ Deno.serve(async (req) => {
 
     const windows: Array<{
       label: string;
-      flag: "notified_30m" | "notified_10m";
+      flag: "notified_30m" | "notified_10m" | "notified_1m";
       offset: number;
       minutesLabel: number;
     }> = [
       { label: "30m", flag: "notified_30m", offset: 30, minutesLabel: 30 },
       { label: "10m", flag: "notified_10m", offset: 10, minutesLabel: 10 },
+      { label: "1m", flag: "notified_1m", offset: 1, minutesLabel: 1 },
     ];
 
     const summary: Record<string, unknown> = {};
