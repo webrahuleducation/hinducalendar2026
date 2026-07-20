@@ -94,7 +94,7 @@ function istTargetStrings(offsetMinutes: number): { date: string; timeStart: str
 async function fetchWindow(
   supabase: ReturnType<typeof createClient>,
   offsetMinutes: number,
-  flagCol: "notified_30m" | "notified_10m",
+  flagCol: "notified_30m" | "notified_10m" | "notified_1m",
 ): Promise<EventRow[]> {
   const target = istTargetStrings(offsetMinutes);
   const { data, error } = await supabase
