@@ -22,6 +22,7 @@ export type Database = {
           description: string | null
           id: string
           notified_10m: boolean
+          notified_1m: boolean
           notified_30m: boolean
           reminder_enabled: boolean | null
           reminder_sent: boolean | null
@@ -38,6 +39,7 @@ export type Database = {
           description?: string | null
           id?: string
           notified_10m?: boolean
+          notified_1m?: boolean
           notified_30m?: boolean
           reminder_enabled?: boolean | null
           reminder_sent?: boolean | null
@@ -54,6 +56,7 @@ export type Database = {
           description?: string | null
           id?: string
           notified_10m?: boolean
+          notified_1m?: boolean
           notified_30m?: boolean
           reminder_enabled?: boolean | null
           reminder_sent?: boolean | null
