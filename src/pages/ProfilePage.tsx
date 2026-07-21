@@ -2,21 +2,18 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Bell, Moon, Globe, LogOut, LogIn, AlertCircle, CheckCircle, Clock, Send } from "lucide-react";
+import { User, Moon, Globe, LogOut, LogIn, Clock, Shield, FileText, Sparkles, CalendarDays, BellRing } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { profileService, Profile } from "@/services/profileService";
-import { useNotifications } from "@/hooks/useNotifications";
-import { useFCMToken } from "@/hooks/useFCMToken";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormat } from "@/contexts/TimeFormatContext";
-import { supabase } from "@/integrations/supabase/client";
 
 
 export default function ProfilePage() {
@@ -26,11 +23,7 @@ export default function ProfilePage() {
   const { theme, toggleTheme, setTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
   const { timeFormat, setTimeFormat } = useTimeFormat();
-  const { permissionStatus, isSupported, requestPermission, scheduledNotifications } = useNotifications();
-  const { requestAndSaveToken } = useFCMToken();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [notifications, setNotifications] = useState(true);
-  const [sendingTest, setSendingTest] = useState(false);
 
   useEffect(() => {
     if (user) loadProfile();
@@ -40,10 +33,7 @@ export default function ProfilePage() {
     if (!user) return;
     try {
       const data = await profileService.getProfile(user.id);
-      if (data) {
-        setProfile(data);
-        setNotifications(data.notifications_enabled);
-      }
+      if (data) setProfile(data);
     } catch (error) {
       console.error("Error loading profile:", error);
     }
@@ -57,96 +47,6 @@ export default function ProfilePage() {
       } catch (error) {
         console.error("Error updating theme:", error);
       }
-    }
-  };
-
-  const handleNotificationsToggle = async (enabled: boolean) => {
-    if (enabled) {
-      // If previously denied at the OS/browser level, we can't re-prompt from JS.
-      if (permissionStatus === "denied") {
-        toast({
-          title: "Notifications are blocked",
-          description:
-            "Please enable notifications for this app in your device settings, then try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const granted = await requestPermission();
-      if (!granted) {
-        toast({ title: t("profile.notifBlocked"), variant: "destructive" });
-        return;
-      }
-
-      const saved = await requestAndSaveToken();
-      if (!saved) {
-        toast({ title: "Failed to register push token", variant: "destructive" });
-        return;
-      }
-      toast({
-        title: "Push notifications enabled!",
-        description: "You'll receive reminders for events.",
-      });
-    }
-    setNotifications(enabled);
-    if (user) {
-      try {
-        await profileService.updateProfile(user.id, { notifications_enabled: enabled });
-      } catch (error) {
-        console.error("Error updating notifications:", error);
-      }
-    }
-  };
-
-  const handleSendTestNotification = async () => {
-    if (!user) {
-      toast({ title: "Please sign in first", variant: "destructive" });
-      return;
-    }
-    setSendingTest(true);
-    try {
-      // Get user's push tokens
-      const { data: tokens } = await supabase
-        .from("push_tokens")
-        .select("token")
-        .eq("user_id", user.id);
-
-      if (!tokens || tokens.length === 0) {
-        toast({ title: "No push token found", description: "Enable notifications first", variant: "destructive" });
-        setSendingTest(false);
-        return;
-      }
-
-      const tokenList = tokens.map((t) => t.token);
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-
-      const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/send-notification`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
-          body: JSON.stringify({
-            tokens: tokenList,
-              title: "🙏 Welcome to Hindu Calendar 2026",
-              body: `Jai Shree Ram, ${profile?.display_name || user.email}! Your notifications are working perfectly. 🕉️`,
-            data: { url: "/profile" },
-          }),
-        }
-      );
-
-      if (res.ok) {
-        toast({ title: "✅ Welcome notification sent!", description: "Check your notifications" });
-      } else {
-        const err = await res.text();
-        console.error("Test notification failed:", err);
-        toast({ title: "Failed to send", description: err, variant: "destructive" });
-      }
-    } catch (err) {
-      console.error("Test notification error:", err);
-      toast({ title: "Error sending notification", variant: "destructive" });
-    } finally {
-      setSendingTest(false);
     }
   };
 
@@ -178,65 +78,6 @@ export default function ProfilePage() {
               </p>
             </div>
           </CardHeader>
-        </Card>
-
-        {/* Notification Settings */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Bell className="h-5 w-5 text-primary" />
-              {t("profile.notifications")}
-            </CardTitle>
-            <CardDescription className="text-sm">
-              {permissionStatus === "granted"
-                ? "Notifications enabled — you'll receive event reminders."
-                : permissionStatus === "denied"
-                ? "Notifications disabled. Enable them in your device settings to receive reminders."
-                : permissionStatus === "unsupported"
-                ? t("profile.notifUnsupported")
-                : "Turn on notifications to receive event reminders."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="notifications">{t("profile.enableNotifications")}</Label>
-                <div className="flex items-center gap-1.5 text-xs">
-                  {permissionStatus === "granted" ? (
-                    <>
-                      <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-                      <span className="text-green-600 font-medium">Enabled</span>
-                    </>
-                  ) : permissionStatus === "denied" ? (
-                    <>
-                      <AlertCircle className="h-3.5 w-3.5 text-destructive" />
-                      <span className="text-destructive font-medium">Disabled</span>
-                    </>
-                  ) : (
-                    <span className="text-muted-foreground">Not enabled yet</span>
-                  )}
-                </div>
-              </div>
-              <Switch
-                id="notifications"
-                checked={permissionStatus === "granted"}
-                onCheckedChange={handleNotificationsToggle}
-                disabled={!isSupported || permissionStatus === "unsupported"}
-              />
-            </div>
-
-            {/* Send Test Notification Button — only when actually enabled */}
-            {user && permissionStatus === "granted" && (
-              <Button
-                onClick={handleSendTestNotification}
-                disabled={sendingTest}
-                className="w-full gap-2"
-              >
-                <Send className="h-4 w-4" />
-                {sendingTest ? "Sending..." : "Test Notification"}
-              </Button>
-            )}
-          </CardContent>
         </Card>
 
         {/* Preferences */}
@@ -291,6 +132,65 @@ export default function ProfilePage() {
                 </SelectContent>
               </Select>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick tips / onboarding recap */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Getting the most out of the app
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex items-start gap-3">
+              <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <p className="text-muted-foreground">
+                Browse every Vrat and Utsav for 2026 on the Calendar. Tap any date to view its full significance.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <BellRing className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <p className="text-muted-foreground">
+                Add your own events under My Events with a reminder time — we'll notify you 30, 10 and 1 minute before.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <Globe className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <p className="text-muted-foreground">
+                Switch between English and हिंदी any time. Your preference stays saved on this device.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* About & legal */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">About</CardTitle>
+          </CardHeader>
+          <CardContent className="divide-y">
+            <button
+              onClick={() => navigate("/privacy")}
+              className="flex w-full items-center justify-between py-3 text-left text-sm hover:text-primary"
+            >
+              <span className="flex items-center gap-3">
+                <Shield className="h-4 w-4 text-muted-foreground" />
+                {t("auth.privacyPolicy")}
+              </span>
+              <span className="text-muted-foreground">›</span>
+            </button>
+            <button
+              onClick={() => navigate("/terms")}
+              className="flex w-full items-center justify-between py-3 text-left text-sm hover:text-primary"
+            >
+              <span className="flex items-center gap-3">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                {t("auth.termsOfService")}
+              </span>
+              <span className="text-muted-foreground">›</span>
+            </button>
           </CardContent>
         </Card>
 
