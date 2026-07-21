@@ -62,19 +62,32 @@ export default function ProfilePage() {
 
   const handleNotificationsToggle = async (enabled: boolean) => {
     if (enabled) {
-      if (permissionStatus !== "granted") {
-        const granted = await requestPermission();
-        if (!granted) {
-          toast({ title: t("profile.notifBlocked"), variant: "destructive" });
-          return;
-        }
+      // If previously denied at the OS/browser level, we can't re-prompt from JS.
+      if (permissionStatus === "denied") {
+        toast({
+          title: "Notifications are blocked",
+          description:
+            "Please enable notifications for this app in your device settings, then try again.",
+          variant: "destructive",
+        });
+        return;
       }
+
+      const granted = await requestPermission();
+      if (!granted) {
+        toast({ title: t("profile.notifBlocked"), variant: "destructive" });
+        return;
+      }
+
       const saved = await requestAndSaveToken();
       if (!saved) {
         toast({ title: "Failed to register push token", variant: "destructive" });
         return;
       }
-      toast({ title: "Push notifications enabled!", description: "You'll receive reminders for events." });
+      toast({
+        title: "Push notifications enabled!",
+        description: "You'll receive reminders for events.",
+      });
     }
     setNotifications(enabled);
     if (user) {
@@ -175,33 +188,44 @@ export default function ProfilePage() {
               {t("profile.notifications")}
             </CardTitle>
             <CardDescription className="text-sm">
-              {scheduledNotifications.length > 0
-                ? `${scheduledNotifications.length} ${t("profile.remindersScheduled")}`
-                : t("profile.noReminders")}
+              {permissionStatus === "granted"
+                ? "Notifications enabled — you'll receive event reminders."
+                : permissionStatus === "denied"
+                ? "Notifications disabled. Enable them in your device settings to receive reminders."
+                : permissionStatus === "unsupported"
+                ? t("profile.notifUnsupported")
+                : "Turn on notifications to receive event reminders."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label htmlFor="notifications">{t("profile.enableNotifications")}</Label>
-                <p className="text-xs text-muted-foreground">{t("profile.notifDesc")}</p>
+                <div className="flex items-center gap-1.5 text-xs">
+                  {permissionStatus === "granted" ? (
+                    <>
+                      <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                      <span className="text-green-600 font-medium">Enabled</span>
+                    </>
+                  ) : permissionStatus === "denied" ? (
+                    <>
+                      <AlertCircle className="h-3.5 w-3.5 text-destructive" />
+                      <span className="text-destructive font-medium">Disabled</span>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground">Not enabled yet</span>
+                  )}
+                </div>
               </div>
-              <Switch id="notifications" checked={notifications} onCheckedChange={handleNotificationsToggle} disabled={!isSupported} />
+              <Switch
+                id="notifications"
+                checked={permissionStatus === "granted"}
+                onCheckedChange={handleNotificationsToggle}
+                disabled={!isSupported || permissionStatus === "unsupported"}
+              />
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              {permissionStatus === "granted" ? (
-                <><CheckCircle className="h-4 w-4 text-green-600" /><span className="text-muted-foreground">{t("profile.notifAllowed")}</span></>
-              ) : permissionStatus === "denied" ? (
-                <><AlertCircle className="h-4 w-4 text-destructive" /><span className="text-muted-foreground">{t("profile.notifBlocked")}</span></>
-              ) : permissionStatus === "unsupported" ? (
-                <><AlertCircle className="h-4 w-4 text-muted-foreground" /><span className="text-muted-foreground">{t("profile.notifUnsupported")}</span></>
-              ) : (
-                <Button variant="outline" size="sm" onClick={requestPermission} className="gap-2">
-                  <Bell className="h-4 w-4" />{t("profile.enableNotifications")}
-                </Button>
-              )}
-            </div>
-            {/* Send Test Notification Button */}
+
+            {/* Send Test Notification Button — only when actually enabled */}
             {user && permissionStatus === "granted" && (
               <Button
                 onClick={handleSendTestNotification}
@@ -209,7 +233,7 @@ export default function ProfilePage() {
                 className="w-full gap-2"
               >
                 <Send className="h-4 w-4" />
-                {sendingTest ? "Sending..." : "Send Welcome Notification"}
+                {sendingTest ? "Sending..." : "Test Notification"}
               </Button>
             )}
           </CardContent>
