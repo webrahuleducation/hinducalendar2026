@@ -78,10 +78,21 @@ export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
           <p className="text-xs text-muted-foreground mb-2">{t("library.upcomingThisMonth")}</p>
           <div className="flex flex-wrap gap-1">
             {visibleEvents.map((event) => (
-              <Badge key={event.id} variant="secondary" className={cn("text-xs",
-                event.type === "vrat" && "bg-primary/15 text-primary hover:bg-primary/25",
-                event.type === "utsav" && "bg-secondary/15 text-secondary hover:bg-secondary/25"
-              )}>{event.title}</Badge>
+              <Badge
+                key={event.id}
+                variant="secondary"
+                onClick={() => {
+                  const [y, m, d] = event.date.split("-").map(Number);
+                  onDateClick(new Date(y, m - 1, d));
+                }}
+                className={cn(
+                  "text-xs cursor-pointer transition-colors",
+                  event.type === "vrat" && "bg-primary/15 text-primary hover:bg-primary/25",
+                  event.type === "utsav" && "bg-secondary/15 text-secondary hover:bg-secondary/25"
+                )}
+              >
+                {event.title}
+              </Badge>
             ))}
             {hiddenCount > 0 && !expanded && (
               <Badge
