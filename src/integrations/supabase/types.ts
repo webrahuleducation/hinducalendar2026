@@ -73,7 +73,11 @@ export type Database = {
           created_at: string
           event_date: string
           event_id: string
+          event_title: string | null
           id: string
+          notified_d0: boolean
+          notified_d1: boolean
+          notified_d2: boolean
           reminder_enabled: boolean | null
           reminder_send_at: string | null
           reminder_sent: boolean | null
@@ -83,7 +87,11 @@ export type Database = {
           created_at?: string
           event_date: string
           event_id: string
+          event_title?: string | null
           id?: string
+          notified_d0?: boolean
+          notified_d1?: boolean
+          notified_d2?: boolean
           reminder_enabled?: boolean | null
           reminder_send_at?: string | null
           reminder_sent?: boolean | null
@@ -93,7 +101,11 @@ export type Database = {
           created_at?: string
           event_date?: string
           event_id?: string
+          event_title?: string | null
           id?: string
+          notified_d0?: boolean
+          notified_d1?: boolean
+          notified_d2?: boolean
           reminder_enabled?: boolean | null
           reminder_send_at?: string | null
           reminder_sent?: boolean | null
