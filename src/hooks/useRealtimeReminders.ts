@@ -88,11 +88,11 @@ export function useRealtimeReminders() {
   );
 
   const toggleReminder = useCallback(
-    async (eventId: string, eventDate: string) => {
+    async (eventId: string, eventDate: string, eventTitle?: string) => {
       if (!user) return;
       
       try {
-        await reminderService.toggleReminder(user.id, eventId, eventDate);
+        await reminderService.toggleReminder(user.id, eventId, eventDate, eventTitle);
       } catch (err) {
         toast({
           title: "Error",

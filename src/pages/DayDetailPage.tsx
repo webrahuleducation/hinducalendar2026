@@ -48,7 +48,7 @@ export default function DayDetailPage() {
 
   const handleReminderToggle = async (eventId: string, enabled: boolean, eventTitle: string) => {
     try {
-      await toggleReminder(eventId, dateStr);
+      await toggleReminder(eventId, dateStr, eventTitle);
       if (enabled) {
         await scheduleEventReminder(eventId, eventTitle, dateStr);
         toast({ title: t("reminder.set"), description: `${t("reminder.setDesc")} ${eventTitle}` });

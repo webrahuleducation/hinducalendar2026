@@ -5,6 +5,7 @@ export interface EventReminder {
   user_id: string;
   event_id: string;
   event_date: string;
+  event_title?: string | null;
   reminder_enabled: boolean;
   reminder_sent: boolean;
   reminder_send_at: string | null;
@@ -39,6 +40,7 @@ function calculateReminderSendAt(eventDate: string, reminderTime: string = "1_da
 export interface CreateReminderInput {
   event_id: string;
   event_date: string;
+  event_title?: string;
   reminder_enabled?: boolean;
 }
 
@@ -74,6 +76,7 @@ export const reminderService = {
         user_id: userId,
         event_id: reminder.event_id,
         event_date: reminder.event_date,
+        event_title: reminder.event_title ?? null,
         reminder_enabled: reminder.reminder_enabled ?? true,
         reminder_sent: false,
         reminder_send_at: reminderSendAt,
@@ -85,10 +88,17 @@ export const reminderService = {
     return data as EventReminder;
   },
 
-  async updateReminder(reminderId: string, enabled: boolean): Promise<EventReminder> {
+  async updateReminder(
+    reminderId: string,
+    enabled: boolean,
+    eventTitle?: string,
+  ): Promise<EventReminder> {
     const { data, error } = await supabase
       .from("event_reminders")
-      .update({ reminder_enabled: enabled })
+      .update({
+        reminder_enabled: enabled,
+        ...(eventTitle ? { event_title: eventTitle } : {}),
+      } as any)
       .eq("id", reminderId)
       .select()
       .single();
@@ -106,7 +116,12 @@ export const reminderService = {
     if (error) throw error;
   },
 
-  async toggleReminder(userId: string, eventId: string, eventDate: string): Promise<EventReminder | null> {
+  async toggleReminder(
+    userId: string,
+    eventId: string,
+    eventDate: string,
+    eventTitle?: string,
+  ): Promise<EventReminder | null> {
     const existing = await this.getReminder(userId, eventId);
     
     if (existing) {
@@ -114,12 +129,13 @@ export const reminderService = {
         await this.deleteReminder(existing.id);
         return null;
       } else {
-        return await this.updateReminder(existing.id, true);
+        return await this.updateReminder(existing.id, true, eventTitle);
       }
     } else {
       return await this.createReminder(userId, {
         event_id: eventId,
         event_date: eventDate,
+        event_title: eventTitle,
         reminder_enabled: true,
       });
     }
