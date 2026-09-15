@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.myhinducalendar.app",
+      "sha256_cert_fingerprints": [
+        "9F:B8:5C:BB:FC:C5:F2:CC:CD:E6:EF:3F:B2:E8:73:85:85:7D:71:A6:12:79:BF:37:91:3D:F4:7D:83:D2:5A:10"
+      ]
+    }
+  }
+]
