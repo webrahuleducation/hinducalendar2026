@@ -58,6 +58,14 @@ export const translationKeys = [
   "common.add",
   // Day Detail
   "day.noEvents", "day.noEventsDesc", "day.vratsSection", "day.utsavsSection",
+  "day.invalidDate",
+  // Misc UI
+  "calendar.selectMonth", "events.pastReminders",
+  "profile.tipsTitle", "profile.tipCalendar", "profile.tipEvents", "profile.tipLanguage",
+  "profile.about", "profile.langEnglish", "profile.langHindi",
+  "common.tryAgainLater", "common.reminderUpdateFailed", "common.legendVrat", "common.legendUtsav",
+  "validation.titleRequired", "validation.titleMax", "validation.dateRequired",
+  "validation.descriptionMax", "validation.timeRequired",
 ] as const;
 
 export type TranslationKey = (typeof translationKeys)[number];
