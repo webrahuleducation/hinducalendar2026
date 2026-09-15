@@ -1,5 +1,7 @@
 import { CalendarDay } from "@/types/calendar";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { toLocaleDigits } from "@/i18n/format";
 
 interface CalendarDayCellProps {
   day: CalendarDay;

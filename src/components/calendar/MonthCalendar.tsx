@@ -1,24 +1,20 @@
 import { useState } from "react";
 import { MonthData } from "@/types/calendar";
 import { CalendarDayCell } from "./CalendarDayCell";
-import { getEventsForMonth } from "@/data/hinduEvents2026";
+import { getEventsForMonth, getLocalizedEventTitle } from "@/data/hinduEvents2026";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { monthTranslationKeys, hinduMonthNamesHi } from "@/i18n/months";
+import { toLocaleDigits } from "@/i18n/format";
 
 interface MonthCalendarProps {
   monthData: MonthData;
   onDateClick: (date: Date) => void;
 }
 
-const monthTranslationKeys = [
-  "month.january", "month.february", "month.march", "month.april",
-  "month.may", "month.june", "month.july", "month.august",
-  "month.september", "month.october", "month.november", "month.december",
-] as const;
-
 export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const monthEvents = getEventsForMonth(monthData.month, monthData.year);
   const vratCount = monthEvents.filter((e) => e.type === "vrat").length;
@@ -30,6 +26,7 @@ export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
   ] as const;
 
   const monthName = t(monthTranslationKeys[monthData.month]);
+  const hinduName = language === "hi" ? hinduMonthNamesHi[monthData.month] : monthData.hinduName;
   const visibleEvents = expanded ? monthEvents : monthEvents.slice(0, 3);
   const hiddenCount = monthEvents.length - 3;
 
@@ -39,19 +36,21 @@ export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-display font-semibold text-foreground">
-              {monthName} {monthData.year}
+              {monthName} {toLocaleDigits(monthData.year, language)}
             </h3>
-            <p className="text-xs text-muted-foreground font-hindi">{monthData.hinduName}</p>
+            <p className="text-xs text-muted-foreground font-hindi">{hinduName}</p>
           </div>
           <div className="flex gap-2">
             {vratCount > 0 && (
               <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
-                {vratCount} {t("calendar.vrat")}{vratCount > 1 ? "s" : ""}
+                {toLocaleDigits(vratCount, language)} {t("calendar.vrat")}
+                {language === "en" && vratCount > 1 ? "s" : ""}
               </Badge>
             )}
             {utsavCount > 0 && (
               <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/30">
-                {utsavCount} {t("calendar.utsav")}{utsavCount > 1 ? "s" : ""}
+                {toLocaleDigits(utsavCount, language)} {t("calendar.utsav")}
+                {language === "en" && utsavCount > 1 ? "s" : ""}
               </Badge>
             )}
           </div>
@@ -91,7 +90,7 @@ export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
                   event.type === "utsav" && "bg-secondary/15 text-secondary hover:bg-secondary/25"
                 )}
               >
-                {event.title}
+                {getLocalizedEventTitle(event.id, language) || event.title}
               </Badge>
             ))}
             {hiddenCount > 0 && !expanded && (
@@ -100,7 +99,7 @@ export function MonthCalendar({ monthData, onDateClick }: MonthCalendarProps) {
                 className="text-xs cursor-pointer hover:bg-accent"
                 onClick={() => setExpanded(true)}
               >
-                +{hiddenCount} {t("library.showMore")}
+                +{toLocaleDigits(hiddenCount, language)} {t("library.showMore")}
               </Badge>
             )}
             {expanded && hiddenCount > 0 && (
