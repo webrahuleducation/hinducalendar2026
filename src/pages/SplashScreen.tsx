@@ -56,7 +56,7 @@ export default function SplashScreen() {
       <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-secondary/10 blur-3xl" />
       <div className="flex-shrink-0" />
       <div className="relative z-10 w-full max-w-md flex-1 flex flex-col justify-center">
-        <Carousel setApi={setApi} opts={{ align: "center", loop: true }} className="w-full">
+        <Carousel setApi={setApi} opts={{ align: "center", loop: false }} className="w-full">
           <CarouselContent className="-ml-0">
             <CarouselItem className="pl-0"><OnboardingSlide1 isVisible={isVisible} /></CarouselItem>
             <CarouselItem className="pl-0"><OnboardingSlide2 isVisible={isVisible} /></CarouselItem>

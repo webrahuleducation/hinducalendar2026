@@ -31,7 +31,7 @@ export function MonthSelector({ currentMonth, onMonthSelect }: MonthSelectorProp
       onValueChange={(value) => onMonthSelect(Number(value))}
     >
       <SelectTrigger className="w-[125px] bg-background/80 backdrop-blur-sm">
-        <SelectValue placeholder="Select month" />
+        <SelectValue placeholder={t("calendar.selectMonth")} />
       </SelectTrigger>
       <SelectContent>
         {months.map((month) => (
