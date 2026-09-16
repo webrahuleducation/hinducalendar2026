@@ -8,8 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { eventService, CustomEvent } from "@/services/eventService";
-import { hinduEvents2026 } from "@/data/hinduEvents2026";
+import { hinduEvents2026, getLocalizedEventTitle, getLocalizedEventDescription } from "@/data/hinduEvents2026";
 import { format, parseISO, isAfter, isBefore, addDays } from "date-fns";
+import { formatLocalized, toLocaleDigits } from "@/i18n/format";
 import { Calendar, Star, Clock, ChevronRight, Plus, Sparkles, Bell, History, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -17,7 +18,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export default function EventsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [customEvents, setCustomEvents] = useState<CustomEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("upcoming");
@@ -51,7 +52,12 @@ export default function EventsPage() {
     .filter(event => event.date < todayStr)
     .sort((a, b) => b.date.localeCompare(a.date));
   const allUpcoming = [
-    ...upcomingPredefined.map(e => ({ ...e, isCustom: false })),
+    ...upcomingPredefined.map(e => ({
+      ...e,
+      title: getLocalizedEventTitle(e.id, language) || e.title,
+      description: getLocalizedEventDescription(e.id, language) || e.description,
+      isCustom: false,
+    })),
     ...upcomingCustom.map(e => ({
       id: e.id, title: e.title, date: e.date, type: "custom" as const,
       description: e.description || "", isCustom: true, category: e.category, reminder_enabled: e.reminder_enabled
@@ -128,7 +134,7 @@ export default function EventsPage() {
                         className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <History className="h-3.5 w-3.5" />
-                        Past Reminders ({pastCustom.length})
+                        {t("events.pastReminders")} ({toLocaleDigits(pastCustom.length, language)})
                         <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showPast && "rotate-180")} />
                       </button>
                       <div className="flex-1 h-px bg-border" />
@@ -160,7 +166,7 @@ export default function EventsPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">{t("events.browseAll")}</p>
-                        <p className="text-sm text-muted-foreground">{hinduEvents2026.length} {t("events.browseAllDesc")}</p>
+                        <p className="text-sm text-muted-foreground">{toLocaleDigits(hinduEvents2026.length, language)} {t("events.browseAllDesc")}</p>
                       </div>
                       <ChevronRight className="h-5 w-5 text-muted-foreground" />
                     </div>
@@ -177,8 +183,8 @@ export default function EventsPage() {
                   <Card><CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">{customEvents.length} {t("events.customEvents")}</p>
-                        <p className="text-sm text-muted-foreground">{upcomingCustom.length} {t("events.customUpcoming")}</p>
+                        <p className="font-medium">{toLocaleDigits(customEvents.length, language)} {t("events.customEvents")}</p>
+                        <p className="text-sm text-muted-foreground">{toLocaleDigits(upcomingCustom.length, language)} {t("events.customUpcoming")}</p>
                       </div>
                       <Button size="sm" onClick={handleAddEvent} className="gap-1"><Plus className="h-4 w-4" />{t("common.add")}</Button>
                     </div>
@@ -202,7 +208,7 @@ interface EventListCardProps {
 function EventListCard({ title, date, type, description, isCustom, category, hasReminder, onClick }: EventListCardProps) {
   const eventDate = parseISO(date);
   const isToday = format(new Date(), "yyyy-MM-dd") === date;
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const getTypeLabel = () => {
     if (type === "vrat") return t("calendar.vrat");
@@ -229,7 +235,7 @@ function EventListCard({ title, date, type, description, isCustom, category, has
               {hasReminder && <Bell className="h-3.5 w-3.5 text-accent" />}
             </div>
             <h4 className="font-medium text-foreground">{title}</h4>
-            <p className="text-sm text-muted-foreground mt-0.5">{format(eventDate, "EEEE, d MMMM")}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{formatLocalized(eventDate, "EEEE, d MMMM", language)}</p>
             {description && <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{description}</p>}
           </div>
           <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-1" />
