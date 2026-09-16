@@ -116,6 +116,52 @@ export const reminderService = {
     if (error) throw error;
   },
 
+  /**
+   * Explicit set (not a flip) — the UI knows the desired state, so we never
+   * rely on possibly-stale local state.
+   */
+  async setReminderEnabled(
+    userId: string,
+    eventId: string,
+    eventDate: string,
+    enabled: boolean,
+    eventTitle?: string,
+  ): Promise<EventReminder | null> {
+    const existing = await this.getReminder(userId, eventId);
+
+    if (!enabled) {
+      if (existing) await this.deleteReminder(existing.id);
+      return null;
+    }
+
+    if (existing) {
+      const { data, error } = await supabase
+        .from("event_reminders")
+        .update({
+          reminder_enabled: true,
+          reminder_sent: false,
+          event_date: eventDate,
+          reminder_send_at: calculateReminderSendAt(eventDate),
+          notified_d2: false,
+          notified_d1: false,
+          notified_d0: false,
+          ...(eventTitle ? { event_title: eventTitle } : {}),
+        } as any)
+        .eq("id", existing.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as EventReminder;
+    }
+
+    return await this.createReminder(userId, {
+      event_id: eventId,
+      event_date: eventDate,
+      event_title: eventTitle,
+      reminder_enabled: true,
+    });
+  },
+
   async toggleReminder(
     userId: string,
     eventId: string,
@@ -123,22 +169,13 @@ export const reminderService = {
     eventTitle?: string,
   ): Promise<EventReminder | null> {
     const existing = await this.getReminder(userId, eventId);
-    
-    if (existing) {
-      if (existing.reminder_enabled) {
-        await this.deleteReminder(existing.id);
-        return null;
-      } else {
-        return await this.updateReminder(existing.id, true, eventTitle);
-      }
-    } else {
-      return await this.createReminder(userId, {
-        event_id: eventId,
-        event_date: eventDate,
-        event_title: eventTitle,
-        reminder_enabled: true,
-      });
-    }
+    return await this.setReminderEnabled(
+      userId,
+      eventId,
+      eventDate,
+      !(existing?.reminder_enabled ?? false),
+      eventTitle,
+    );
   },
 
   async getUpcomingReminders(userId: string, limit = 10): Promise<EventReminder[]> {
