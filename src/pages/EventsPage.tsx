@@ -213,7 +213,9 @@ function EventListCard({ title, date, type, description, isCustom, category, has
   const getTypeLabel = () => {
     if (type === "vrat") return t("calendar.vrat");
     if (type === "utsav") return t("calendar.utsav");
-    return category || t("events.personal");
+    if (category === "family") return t("events.family");
+    if (category === "community") return t("events.community");
+    return t("events.personal");
   };
 
   return (
