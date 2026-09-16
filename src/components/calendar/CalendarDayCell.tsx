@@ -9,6 +9,7 @@ interface CalendarDayCellProps {
 }
 
 export function CalendarDayCell({ day, onClick }: CalendarDayCellProps) {
+  const { language } = useLanguage();
   const hasCustom = day.events.some((e) => e.type === "custom");
   const hasVrat = day.events.some((e) => e.type === "vrat");
   const hasUtsav = day.events.some((e) => e.type === "utsav");
@@ -27,7 +28,7 @@ export function CalendarDayCell({ day, onClick }: CalendarDayCellProps) {
       )}
     >
       {/* Date number */}
-      <span className="z-10">{day.date.getDate()}</span>
+      <span className="z-10">{toLocaleDigits(day.date.getDate(), language)}</span>
 
       {/* Event indicators - stacked dots */}
       {hasEvents && day.isCurrentMonth && (
