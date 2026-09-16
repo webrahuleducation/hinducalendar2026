@@ -23,7 +23,7 @@ export default function AuthScreen() {
     setIsLoading(true);
     const { error } = await signInWithGoogle();
     if (error) {
-      toast.error(t("common.error"), { description: error.message || "Please try again later" });
+      toast.error(t("common.error"), { description: error.message || t("common.tryAgainLater") });
       setIsLoading(false);
     }
   };

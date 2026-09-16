@@ -2,7 +2,8 @@ import { CalendarEvent } from "@/types/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { format, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
+import { formatLocalized } from "@/i18n/format";
 import { ChevronRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getLocalizedEventTitle, getLocalizedEventDescription } from "@/data/hinduEvents2026";
@@ -53,7 +54,7 @@ export function EventListItem({ event, onClick, showDate = true }: EventListItem
               </Badge>
               {showDate && (
                 <span className="text-xs text-muted-foreground">
-                  {format(eventDate, "MMM d")}
+                  {formatLocalized(eventDate, "MMM d", language)}
                 </span>
               )}
             </div>
