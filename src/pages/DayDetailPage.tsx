@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { getEventsForDate } from "@/data/hinduEvents2026";
 import { parseDateFromUrl, formatDateForUrl } from "@/utils/calendarUtils";
 import { format, addDays, subDays } from "date-fns";
+import { formatLocalized } from "@/i18n/format";
 import { ChevronLeft, ChevronRight, Plus, Calendar, Sunrise } from "lucide-react";
 import { FloatingActionButton } from "@/components/layout/FloatingActionButton";
 import { useRealtimeReminders } from "@/hooks/useRealtimeReminders";
@@ -20,7 +21,7 @@ export default function DayDetailPage() {
   const { events: customEvents } = useRealtimeEvents();
   const { scheduleEventReminder, cancelEventReminder } = useNotifications();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const isValidDate = date && /^\d{4}-\d{2}-\d{2}$/.test(date);
   const currentDate = isValidDate ? parseDateFromUrl(date) : new Date();
@@ -58,17 +59,17 @@ export default function DayDetailPage() {
       }
     } catch (error) {
       console.error("Error toggling reminder:", error);
-      toast({ title: t("common.error"), description: "Could not update reminder.", variant: "destructive" });
+      toast({ title: t("common.error"), description: t("common.reminderUpdateFailed"), variant: "destructive" });
     }
   };
 
-  const dayOfWeek = isDateValid ? format(currentDate, "EEEE") : "";
-  const formattedDate = isDateValid ? format(currentDate, "d MMMM yyyy") : "";
+  const dayOfWeek = isDateValid ? formatLocalized(currentDate, "EEEE", language) : "";
+  const formattedDate = isDateValid ? formatLocalized(currentDate, "d MMMM yyyy", language) : "";
   const isToday = isDateValid && format(new Date(), "yyyy-MM-dd") === dateStr;
   const hasAnyEvents = events.length > 0 || customForDay.length > 0;
 
   return (
-    <AppLayout title={isDateValid ? format(currentDate, "d MMM yyyy") : "Invalid Date"} showBack>
+    <AppLayout title={isDateValid ? formatLocalized(currentDate, "d MMM yyyy", language) : t("day.invalidDate")} showBack>
       <div className="bg-gradient-to-r from-primary/10 to-secondary/10 px-4 py-6">
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="icon" onClick={handlePrevDay} className="shrink-0">

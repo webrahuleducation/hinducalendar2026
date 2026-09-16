@@ -7,16 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { hinduEvents2026 } from "@/data/hinduEvents2026";
+import { hinduEvents2026, getLocalizedEventTitle, getLocalizedEventDescription } from "@/data/hinduEvents2026";
 import { CalendarEvent } from "@/types/calendar";
-import { getMonthName } from "@/utils/calendarUtils";
+import { monthTranslationKeys } from "@/i18n/months";
+import { toLocaleDigits } from "@/i18n/format";
 import { Search, BookOpen, Calendar, Sparkles } from "lucide-react";
 import { parseISO } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LibraryPage() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<"all" | "vrat" | "utsav">("all");
@@ -30,10 +31,19 @@ export default function LibraryPage() {
     }
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      events = events.filter(e => e.title.toLowerCase().includes(query) || e.description?.toLowerCase().includes(query));
+      events = events.filter(e => {
+        const localTitle = getLocalizedEventTitle(e.id, language) || "";
+        const localDesc = getLocalizedEventDescription(e.id, language) || "";
+        return (
+          e.title.toLowerCase().includes(query) ||
+          e.description?.toLowerCase().includes(query) ||
+          localTitle.toLowerCase().includes(query) ||
+          localDesc.toLowerCase().includes(query)
+        );
+      });
     }
     return events;
-  }, [searchQuery, selectedMonth, activeTab]);
+  }, [searchQuery, selectedMonth, activeTab, language]);
 
   const groupedEvents = useMemo(() => {
     const groups: Record<number, CalendarEvent[]> = {};
@@ -48,7 +58,7 @@ export default function LibraryPage() {
   const handleEventClick = (event: CalendarEvent) => navigate(`/day/${event.date}`);
   const totalVrats = hinduEvents2026.filter(e => e.type === "vrat").length;
   const totalUtsavs = hinduEvents2026.filter(e => e.type === "utsav").length;
-  const months = Array.from({ length: 12 }, (_, i) => ({ value: String(i), label: getMonthName(i) }));
+  const months = Array.from({ length: 12 }, (_, i) => ({ value: String(i), label: t(monthTranslationKeys[i]) }));
 
   return (
     <AppLayout title={t("library.title")}>
@@ -59,17 +69,17 @@ export default function LibraryPage() {
         </div>
         <div className="flex justify-center gap-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-primary">{totalVrats}</p>
+            <p className="text-2xl font-bold text-primary">{toLocaleDigits(totalVrats, language)}</p>
             <p className="text-xs text-muted-foreground">{t("calendar.vrat")}</p>
           </div>
           <div className="w-px bg-border" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-secondary">{totalUtsavs}</p>
+            <p className="text-2xl font-bold text-secondary">{toLocaleDigits(totalUtsavs, language)}</p>
             <p className="text-xs text-muted-foreground">{t("calendar.utsav")}</p>
           </div>
           <div className="w-px bg-border" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-accent">{hinduEvents2026.length}</p>
+            <p className="text-2xl font-bold text-accent">{toLocaleDigits(hinduEvents2026.length, language)}</p>
             <p className="text-xs text-muted-foreground">{t("events.all")}</p>
           </div>
         </div>
@@ -113,8 +123,8 @@ export default function LibraryPage() {
             {Object.entries(groupedEvents).sort(([a], [b]) => Number(a) - Number(b)).map(([month, events]) => (
               <section key={month}>
                 <h2 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />{getMonthName(Number(month))} 2026
-                  <Badge variant="secondary" className="ml-auto">{events.length}</Badge>
+                  <Calendar className="h-4 w-4" />{t(monthTranslationKeys[Number(month)])} {toLocaleDigits(2026, language)}
+                  <Badge variant="secondary" className="ml-auto">{toLocaleDigits(events.length, language)}</Badge>
                 </h2>
                 <div className="space-y-2">
                   {events.map(event => (<EventListItem key={event.id} event={event} onClick={handleEventClick} />))}
@@ -125,7 +135,7 @@ export default function LibraryPage() {
         ) : (
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-medium text-muted-foreground">{getMonthName(Number(selectedMonth))} 2026</h2>
+              <h2 className="text-sm font-medium text-muted-foreground">{t(monthTranslationKeys[Number(selectedMonth)])} {toLocaleDigits(2026, language)}</h2>
               <Badge variant="secondary">{filteredEvents.length} events</Badge>
             </div>
             {filteredEvents.map(event => (<EventListItem key={event.id} event={event} onClick={handleEventClick} />))}

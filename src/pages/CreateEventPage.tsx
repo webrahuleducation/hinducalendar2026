@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
+import { formatLocalized } from "@/i18n/format";
 import { CalendarIcon, Clock, Bell, Tag, AlertCircle } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -30,10 +31,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormat } from "@/contexts/TimeFormatContext";
 
 const eventSchema = z.object({
-  title: z.string().trim().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
-  date: z.date({ required_error: "Date is required" }),
+  title: z.string().trim().min(1, "validation.titleRequired").max(100, "validation.titleMax"),
+  date: z.date({ required_error: "validation.dateRequired" }),
   time: z.string().optional(),
-  description: z.string().trim().max(500, "Description must be less than 500 characters").optional(),
+  description: z.string().trim().max(500, "validation.descriptionMax").optional(),
   category: z.enum(["personal", "family", "community"]),
   reminder_enabled: z.boolean(),
   reminder_time: z.string(),
@@ -45,7 +46,7 @@ const eventSchema = z.object({
     return true;
   },
   {
-    message: "Time is required when reminder is enabled",
+    message: "validation.timeRequired",
     path: ["time"],
   }
 );
@@ -57,7 +58,7 @@ export default function CreateEventPage() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { formatTime } = useTimeFormat();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -141,7 +142,7 @@ export default function CreateEventPage() {
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                        {field.value ? format(field.value, "PPP") : <span>{t("events.date")}</span>}
+                        {field.value ? formatLocalized(field.value, "PPP", language) : <span>{t("events.date")}</span>}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>

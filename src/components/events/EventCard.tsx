@@ -19,7 +19,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { format, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
+import { formatLocalized } from "@/i18n/format";
 import { useShare } from "@/hooks/useShare";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -124,7 +125,7 @@ export function EventCard({
           <CardContent className="pt-0 pb-4 space-y-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <CalendarIcon className="h-4 w-4" />
-              <span>{format(eventDate, "EEEE, d MMMM yyyy")}</span>
+              <span>{formatLocalized(eventDate, "EEEE, d MMMM yyyy", language)}</span>
             </div>
 
             {event.significance && (

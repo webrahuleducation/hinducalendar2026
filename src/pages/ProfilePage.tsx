@@ -111,8 +111,8 @@ export default function ProfilePage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="hi">हिंदी</SelectItem>
+                  <SelectItem value="en">{t("profile.langEnglish")}</SelectItem>
+                  <SelectItem value="hi">{t("profile.langHindi")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -140,26 +140,26 @@ export default function ProfilePage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              Getting the most out of the app
+              {t("profile.tipsTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-start gap-3">
               <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <p className="text-muted-foreground">
-                Browse every Vrat and Utsav for 2026 on the Calendar. Tap any date to view its full significance.
+                {t("profile.tipCalendar")}
               </p>
             </div>
             <div className="flex items-start gap-3">
               <BellRing className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <p className="text-muted-foreground">
-                Add your own events under My Events with a reminder time — we'll notify you 30, 10 and 1 minute before.
+                {t("profile.tipEvents")}
               </p>
             </div>
             <div className="flex items-start gap-3">
               <Globe className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <p className="text-muted-foreground">
-                Switch between English and हिंदी any time. Your preference stays saved on this device.
+                {t("profile.tipLanguage")}
               </p>
             </div>
           </CardContent>
@@ -168,7 +168,7 @@ export default function ProfilePage() {
         {/* About & legal */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">About</CardTitle>
+            <CardTitle className="text-base">{t("profile.about")}</CardTitle>
           </CardHeader>
           <CardContent className="divide-y">
             <button
