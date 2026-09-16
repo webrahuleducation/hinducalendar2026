@@ -57,15 +57,28 @@ export default function CalendarPage() {
     navigate("/event/new");
   }, [navigate]);
 
-  const scrollToMonth = useCallback((month: number) => {
+  const scrollToMonth = useCallback((month: number, behavior: ScrollBehavior = "smooth") => {
     const element = monthRefs.current[month];
     if (element) {
       isScrollingToMonth.current = true;
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      element.scrollIntoView({ behavior, block: "start" });
       setCurrentVisibleMonth(month);
-      setTimeout(() => { isScrollingToMonth.current = false; }, 500);
+      setTimeout(() => { isScrollingToMonth.current = false; }, 600);
     }
   }, []);
+
+  // Always land on the current month when the calendar opens
+  const didInitialScroll = useRef(false);
+  useEffect(() => {
+    if (didInitialScroll.current) return;
+    const now = new Date();
+    const month = now.getFullYear() === 2026 ? now.getMonth() : 0;
+    const id = requestAnimationFrame(() => {
+      didInitialScroll.current = true;
+      if (month > 0) scrollToMonth(month, "auto");
+    });
+    return () => cancelAnimationFrame(id);
+  }, [scrollToMonth]);
 
   const scrollToToday = useCallback(() => {
     const now = new Date();
@@ -120,7 +133,11 @@ export default function CalendarPage() {
       <div ref={scrollContainerRef} className="flex-1 overflow-auto px-4 py-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {yearData.map((monthData, index) => (
-            <div key={`${monthData.year}-${monthData.month}`} ref={(el) => (monthRefs.current[index] = el)} className="h-full">
+            <div
+              key={`${monthData.year}-${monthData.month}`}
+              ref={(el) => (monthRefs.current[index] = el)}
+              className="h-full scroll-mt-32"
+            >
               <MonthCalendar monthData={monthData} onDateClick={handleDateClick} />
             </div>
           ))}
