@@ -14,11 +14,13 @@ import { formatLocalized, toLocaleDigits } from "@/i18n/format";
 import { Calendar, Star, Clock, ChevronRight, Plus, Sparkles, Bell, History, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useRealtimeReminders } from "@/hooks/useRealtimeReminders";
 
 export default function EventsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const { reminders, isReminderEnabled } = useRealtimeReminders();
   const [customEvents, setCustomEvents] = useState<CustomEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("upcoming");
