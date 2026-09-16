@@ -17,7 +17,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export default function DayDetailPage() {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
-  const { isReminderEnabled, toggleReminder } = useRealtimeReminders();
+  const { isReminderEnabled, setReminder } = useRealtimeReminders();
   const { events: customEvents } = useRealtimeEvents();
   const { scheduleEventReminder, cancelEventReminder } = useNotifications();
   const { toast } = useToast();
@@ -49,9 +49,8 @@ export default function DayDetailPage() {
 
   const handleReminderToggle = async (eventId: string, enabled: boolean, eventTitle: string) => {
     try {
-      await toggleReminder(eventId, dateStr, eventTitle);
+      await setReminder(eventId, dateStr, enabled, eventTitle);
       if (enabled) {
-        await scheduleEventReminder(eventId, eventTitle, dateStr);
         toast({ title: t("reminder.set"), description: `${t("reminder.setDesc")} ${eventTitle}` });
       } else {
         cancelEventReminder(eventId);

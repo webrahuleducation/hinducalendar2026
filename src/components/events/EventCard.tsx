@@ -17,7 +17,7 @@ import {
   Sparkles,
   CalendarPlus
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { parseISO } from "date-fns";
 import { formatLocalized } from "@/i18n/format";
