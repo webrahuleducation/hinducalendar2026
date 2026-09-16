@@ -51,12 +51,28 @@ export default function EventsPage() {
   const pastCustom = customEvents
     .filter(event => event.date < todayStr)
     .sort((a, b) => b.date.localeCompare(a.date));
+  // Predefined festivals the user has switched a reminder on for.
+  const remindedPredefined = reminders
+    .filter(r => r.reminder_enabled && r.event_date >= todayStr)
+    .map(r => {
+      const source = hinduEvents2026.find(e => e.id === r.event_id);
+      return {
+        id: r.event_id,
+        date: r.event_date,
+        type: (source?.type ?? "utsav") as "vrat" | "utsav",
+        title: getLocalizedEventTitle(r.event_id, language) || source?.title || r.event_title || "",
+        description: getLocalizedEventDescription(r.event_id, language) || source?.description || "",
+      };
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+
   const allUpcoming = [
     ...upcomingPredefined.map(e => ({
       ...e,
       title: getLocalizedEventTitle(e.id, language) || e.title,
       description: getLocalizedEventDescription(e.id, language) || e.description,
       isCustom: false,
+      reminder_enabled: isReminderEnabled(e.id),
     })),
     ...upcomingCustom.map(e => ({
       id: e.id, title: e.title, date: e.date, type: "custom" as const,
