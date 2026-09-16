@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { hinduEvents2026 } from "@/data/hinduEvents2026";
+import { hinduEvents2026, getLocalizedEventTitle, getLocalizedEventDescription } from "@/data/hinduEvents2026";
 import { CalendarEvent } from "@/types/calendar";
 import { monthTranslationKeys } from "@/i18n/months";
 import { toLocaleDigits } from "@/i18n/format";
@@ -31,10 +31,19 @@ export default function LibraryPage() {
     }
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      events = events.filter(e => e.title.toLowerCase().includes(query) || e.description?.toLowerCase().includes(query));
+      events = events.filter(e => {
+        const localTitle = getLocalizedEventTitle(e.id, language) || "";
+        const localDesc = getLocalizedEventDescription(e.id, language) || "";
+        return (
+          e.title.toLowerCase().includes(query) ||
+          e.description?.toLowerCase().includes(query) ||
+          localTitle.toLowerCase().includes(query) ||
+          localDesc.toLowerCase().includes(query)
+        );
+      });
     }
     return events;
-  }, [searchQuery, selectedMonth, activeTab]);
+  }, [searchQuery, selectedMonth, activeTab, language]);
 
   const groupedEvents = useMemo(() => {
     const groups: Record<number, CalendarEvent[]> = {};
@@ -126,7 +135,7 @@ export default function LibraryPage() {
         ) : (
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-medium text-muted-foreground">{getMonthName(Number(selectedMonth))} 2026</h2>
+              <h2 className="text-sm font-medium text-muted-foreground">{t(monthTranslationKeys[Number(selectedMonth)])} {toLocaleDigits(2026, language)}</h2>
               <Badge variant="secondary">{filteredEvents.length} events</Badge>
             </div>
             {filteredEvents.map(event => (<EventListItem key={event.id} event={event} onClick={handleEventClick} />))}

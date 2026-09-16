@@ -35,8 +35,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormat } from "@/contexts/TimeFormatContext";
 
 const eventSchema = z.object({
-  title: z.string().trim().min(1, "Title is required").max(100),
-  date: z.date({ required_error: "Date is required" }),
+  title: z.string().trim().min(1, "validation.titleRequired").max(100),
+  date: z.date({ required_error: "validation.dateRequired" }),
   time: z.string().optional(),
   description: z.string().trim().max(500).optional(),
   category: z.enum(["personal", "family", "community"]),
@@ -44,7 +44,7 @@ const eventSchema = z.object({
   reminder_time: z.string(),
 }).refine(
   (data) => !(data.reminder_enabled && (!data.time || data.time.trim() === "")),
-  { message: "Time is required when reminder is enabled", path: ["time"] }
+  { message: "validation.timeRequired", path: ["time"] }
 );
 
 type EventFormValues = z.infer<typeof eventSchema>;
