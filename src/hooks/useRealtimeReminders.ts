@@ -137,6 +137,7 @@ export function useRealtimeReminders() {
     loading,
     error,
     isReminderEnabled,
+    setReminder,
     toggleReminder,
     refetch,
   };
