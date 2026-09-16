@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
+import { formatLocalized } from "@/i18n/format";
 import { CalendarIcon, Clock, Bell, Tag, AlertCircle } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -57,7 +58,7 @@ export default function CreateEventPage() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { formatTime } = useTimeFormat();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
