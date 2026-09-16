@@ -42,13 +42,20 @@ export function EventCard({
   defaultExpanded = false 
 }: EventCardProps) {
   const [isOpen, setIsOpen] = useState(defaultExpanded);
-  const [reminder, setReminder] = useState(reminderEnabled);
+  const [optimistic, setOptimistic] = useState<boolean | null>(null);
   const { shareEvent, addToCalendar } = useShare();
   const { toast } = useToast();
   const { t, language } = useLanguage();
 
+  // Always follow the saved state; the optimistic value only bridges the round-trip.
+  useEffect(() => {
+    setOptimistic(null);
+  }, [reminderEnabled, event.id]);
+
+  const reminder = optimistic ?? reminderEnabled;
+
   const handleReminderChange = (enabled: boolean) => {
-    setReminder(enabled);
+    setOptimistic(enabled);
     onReminderToggle?.(event.id, enabled);
   };
 
