@@ -87,12 +87,36 @@ export function useRealtimeReminders() {
     [reminders]
   );
 
+  const setReminder = useCallback(
+    async (eventId: string, eventDate: string, enabled: boolean, eventTitle?: string) => {
+      if (!user) throw new Error("not signed in");
+
+      const result = await reminderService.setReminderEnabled(
+        user.id,
+        eventId,
+        eventDate,
+        enabled,
+        eventTitle,
+      );
+
+      // Optimistic local sync so the switch never snaps back before realtime lands.
+      setReminders((prev) => {
+        const without = prev.filter((r) => r.event_id !== eventId);
+        return result ? [...without, result].sort(
+          (a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime()
+        ) : without;
+      });
+
+      return result;
+    },
+    [user]
+  );
+
   const toggleReminder = useCallback(
     async (eventId: string, eventDate: string, eventTitle?: string) => {
-      if (!user) return;
-      
+      const current = reminders.find((r) => r.event_id === eventId)?.reminder_enabled ?? false;
       try {
-        await reminderService.toggleReminder(user.id, eventId, eventDate, eventTitle);
+        await setReminder(eventId, eventDate, !current, eventTitle);
       } catch (err) {
         toast({
           title: "Error",
@@ -101,7 +125,7 @@ export function useRealtimeReminders() {
         });
       }
     },
-    [user, toast]
+    [reminders, setReminder, toast]
   );
 
   const refetch = useCallback(() => {
