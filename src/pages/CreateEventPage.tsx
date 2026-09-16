@@ -141,7 +141,7 @@ export default function CreateEventPage() {
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                        {field.value ? format(field.value, "PPP") : <span>{t("events.date")}</span>}
+                        {field.value ? formatLocalized(field.value, "PPP", language) : <span>{t("events.date")}</span>}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>

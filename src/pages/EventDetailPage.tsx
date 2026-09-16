@@ -35,7 +35,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormat } from "@/contexts/TimeFormatContext";
 
 const eventSchema = z.object({
-  title: z.string().trim().min(1, "validation.titleRequired").max(100),
+  title: z.string().trim().min(1, "validation.titleRequired").max(100, "validation.titleMax"),
   date: z.date({ required_error: "validation.dateRequired" }),
   time: z.string().optional(),
   description: z.string().trim().max(500).optional(),
@@ -208,7 +208,7 @@ export default function EventDetailPage() {
                 <FormItem className="flex flex-col"><FormLabel>{t("events.date")}</FormLabel>
                   <Popover><PopoverTrigger asChild><FormControl>
                     <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                      {field.value ? format(field.value, "PPP") : <span>{t("events.date")}</span>}
+                      {field.value ? formatLocalized(field.value, "PPP", language) : <span>{t("events.date")}</span>}
                       <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                     </Button></FormControl></PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -309,7 +309,7 @@ export default function EventDetailPage() {
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <CalendarIcon className="h-5 w-5" />
-                  <span>{format(parseISO(event.date), "EEEE, d MMMM yyyy")}</span>
+                  <span>{formatLocalized(parseISO(event.date), "EEEE, d MMMM yyyy", language)}</span>
                 </div>
                 {event.time && (
                   <div className="flex items-center gap-3 text-muted-foreground">

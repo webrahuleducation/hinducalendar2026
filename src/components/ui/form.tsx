@@ -3,6 +3,8 @@ import * as LabelPrimitive from "@radix-ui/react-label";
 import { Slot } from "@radix-ui/react-slot";
 import { Controller, ControllerProps, FieldPath, FieldValues, FormProvider, useFormContext } from "react-hook-form";
 
+import { useLanguage } from "@/contexts/LanguageContext"
+import type { TranslationKey } from "@/i18n/translations"
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 
@@ -111,7 +113,12 @@ FormDescription.displayName = "FormDescription";
 const FormMessage = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, children, ...props }, ref) => {
     const { error, formMessageId } = useFormField();
-    const body = error ? String(error?.message) : children;
+    const { t } = useLanguage();
+    const raw = error ? String(error?.message) : children;
+    const body =
+      typeof raw === "string" && raw.startsWith("validation.")
+        ? t(raw as TranslationKey)
+        : raw;
 
     if (!body) {
       return null;
