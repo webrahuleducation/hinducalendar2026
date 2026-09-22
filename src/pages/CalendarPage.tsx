@@ -142,7 +142,6 @@ export default function CalendarPage() {
             </div>
           ))}
         </div>
-        <div className="h-20" />
       </div>
 
       <FloatingActionButton onClick={handleAddEvent} />
